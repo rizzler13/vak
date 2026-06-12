@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>VĀK - The Conversation That Shifts It</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#00e639",
+                        "on-secondary-fixed-variant": "#474746",
+                        "on-tertiary-fixed": "#002203",
+                        "on-primary-fixed": "#001356",
+                        "secondary-container": "#474746",
+                        "surface-container": "#1f1f1f",
+                        "primary-container": "#2e5bff",
+                        "surface-container-lowest": "#0e0e0e",
+                        "on-tertiary-fixed-variant": "#00530e",
+                        "on-primary-container": "#efefff",
+                        "inverse-on-surface": "#303030",
+                        "on-primary": "#002388",
+                        "primary-fixed-dim": "#b8c3ff",
+                        "on-tertiary": "#003907",
+                        "outline-variant": "#434656",
+                        "slate-gray": "#8E8E93",
+                        "on-secondary": "#313030",
+                        "warm-white": "#F2F2F7",
+                        "error": "#ffb4ab",
+                        "on-secondary-container": "#b7b5b4",
+                        "background": "#131313",
+                        "on-error-container": "#ffdad6",
+                        "surface-bright": "#393939",
+                        "studio-black": "#000000",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "tertiary-container": "#007f1b",
+                        "on-error": "#690005",
+                        "surface-container-low": "#1b1b1b",
+                        "status-green": "#00FF41",
+                        "tertiary-fixed-dim": "#00e639",
+                        "surface": "#131313",
+                        "outline": "#8e90a2",
+                        "inverse-primary": "#124af0",
+                        "on-surface": "#e2e2e2",
+                        "on-background": "#e2e2e2",
+                        "primary-fixed": "#dde1ff",
+                        "surface-dim": "#131313",
+                        "error-container": "#93000a",
+                        "surface-tint": "#b8c3ff",
+                        "surface-container-high": "#2a2a2a",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "electric-blue": "#2E5BFF",
+                        "surface-variant": "#353535",
+                        "surface-container-highest": "#353535",
+                        "on-surface-variant": "#c4c5d9",
+                        "on-primary-fixed-variant": "#0035be",
+                        "on-tertiary-container": "#c6ffbb",
+                        "tertiary-fixed": "#72ff70",
+                        "primary": "#b8c3ff",
+                        "inverse-surface": "#e2e2e2",
+                        "secondary-fixed": "#e5e2e1",
+                        "secondary": "#c8c6c5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "margin-desktop": "64px",
+                        "container-max": "1200px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Manrope"],
+                        "stat-lg": ["JetBrains Mono"],
+                        "label-mono-xs": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Manrope"],
+                        "label-mono-sm": ["JetBrains Mono"],
+                        "headline-xl": ["Manrope"],
+                        "headline-lg": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "body-md": ["18px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                        "stat-lg": ["36px", {"lineHeight": "1", "fontWeight": "700"}],
+                        "label-mono-xs": ["10px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "label-mono-sm": ["12px", {"lineHeight": "1.4", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                        "headline-xl": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #000000 !important;
+            color: #ffffff;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 24px 24px;
+            scroll-behavior: smooth;
+        }
+
+        .mesh-bg {
+            background-image: repeating-linear-gradient(
+                45deg,
+                #1a1a1a 0,
+                #1a1a1a 1px,
+                transparent 1px,
+                transparent 4px
+            );
+        }
+
+        .bracket-tl, .bracket-tr, .bracket-bl, .bracket-br {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-color: rgba(255, 255, 255, 0.25);
+            border-style: solid;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .bracket-tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
+        .bracket-tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
+        .bracket-bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+        .bracket-br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+        
+        /* Pulse Animation for Voice Agent Visualizer */
+        .pulse-ring {
+            animation: pulse-ring 2.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.7); opacity: 0.8; }
+            70%, 100% { transform: scale(1.3); opacity: 0; }
+        }
+
+        /* Spinning Border for Thinking State */
+        @keyframes rotate-border {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-rotate {
+            animation: rotate-border 2s linear infinite;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2E5BFF;
+        }
+
+        .exact-card {
+            border: 1px solid #2a2a2a;
+            background-color: #050505;
+            transition: all 0.3s ease;
+        }
+        .exact-card:hover {
+            border-color: #2E5BFF;
+            background-color: rgba(46, 91, 255, 0.03);
+        }
+
+        /* View transitions */
+        .view-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            width: 100%;
+        }
+        .view-content.active {
+            display: flex;
+            flex-direction: column;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #view-chat.active {
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        @media (min-width: 768px) {
+            #view-chat.active {
+                flex-direction: row !important;
+            }
+        }
+
+        #whoop-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Glowing text effect */
+        .glow-text {
+            text-shadow: 0 0 10px rgba(46, 91, 255, 0.4);
+        }
+
+        /* Visualizer bounce keyframes */
+        @keyframes visualizer-bounce {
+            0% { height: 20%; }
+            100% { height: 100%; }
+        }
+        .visualizer-bar-active {
+            animation: visualizer-bounce 0.6s ease-in-out infinite alternate;
+        }
+
+        /* ── Whoop Report Premium Styles ── */
+        @keyframes fade-slide-up {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bar-grow {
+            from { width: 0%; }
+        }
+        @keyframes sparkline-draw {
+            from { stroke-dashoffset: 300; }
+            to { stroke-dashoffset: 0; }
+        }
+        .whoop-section {
+            animation: fade-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+        }
+        .whoop-bar {
+            height: 4px;
+            border-radius: 2px;
+            background-color: #2E5BFF;
+            animation: bar-grow 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .whoop-sparkline {
+            stroke-dasharray: 300;
+            stroke-dashoffset: 300;
+            animation: sparkline-draw 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .whoop-insight-card {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #050505;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+        .whoop-insight-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: #090909;
+        }
+        .whoop-metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .whoop-metric-row:last-child { border-bottom: none; }
+        .whoop-label { color: rgba(255,255,255,0.4); font-size: 11px; }
+        .whoop-value { color: #fff; font-weight: 600; font-size: 12px; text-align: right; max-width: 60%; }
+        .whoop-section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .whoop-section-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-body-md relative selection:bg-electric-blue selection:text-white bg-studio-black text-white">
+
+<!-- Background Video Container (Facility open for future video loops) -->
+<div id="video-bg-container" class="absolute inset-0 w-full h-full object-cover z-0 opacity-15 pointer-events-none hidden">
+    <!-- E.g. <video autoplay loop muted playsinline class="w-full h-full object-cover"><source src="bg.mp4" type="video/mp4"></video> -->
+</div>
+
+<!-- Top Navigation -->
+<header class="backdrop-blur-md border-b border-outline-variant/30 flex justify-between items-center w-full px-6 md:px-margin-desktop py-4 md:py-6 z-50 sticky top-0 bg-black/90">
+    <div class="flex items-center gap-2 cursor-pointer" onclick="switchView('home')">
+        <img alt="VĀK Logo" class="h-14 md:h-20 w-auto object-contain transition-all hover:scale-[1.02]" src="logo.png">
+    </div>
+    <nav class="hidden md:flex gap-8">
+        <button id="nav-home" class="text-electric-blue font-bold border-b-2 border-electric-blue pb-1 font-label-mono-sm text-label-mono-sm uppercase transition-all duration-300" onclick="switchView('home')">STATIONS</button>
+        <button id="nav-about" class="text-white/60 font-medium font-label-mono-sm text-label-mono-sm uppercase hover:text-white transition-all duration-300" onclick="switchView('about')">ABOUT</button>
+        <button id="nav-chat" class="text-white/60 font-medium font-label-mono-sm text-label-mono-sm uppercase hover:text-white transition-all duration-300" onclick="switchView('chat')">TERMINAL</button>
+        <button id="nav-report" class="text-white/60 font-medium font-label-mono-sm text-label-mono-sm uppercase hover:text-white transition-all duration-300" onclick="switchView('report')">REPORT</button>
+    </nav>
+    <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 font-label-mono-xs text-label-mono-xs text-white/50 uppercase">
+            <span class="w-1.5 h-1.5 rounded-full bg-status-green animate-pulse"></span>
+            LIVE
+        </div>
+        <button id="header-action-btn" class="bg-electric-blue text-white px-5 py-2 font-label-mono-sm text-label-mono-sm uppercase hover:bg-white hover:text-electric-blue transition-all duration-300 border border-electric-blue" onclick="switchView('chat')">START CONVERSATION</button>
+    </div>
+</header>
+
+<!-- Main Canvas Container -->
+<main class="relative flex flex-col pt-6 md:pt-8 px-4 md:px-margin-desktop pb-6 max-w-container-max w-full mx-auto">
+    <!-- Framing HUD Brackets -->
+    <div id="hud-frame" class="absolute inset-x-4 md:inset-x-margin-desktop top-[16px] bottom-[16px] pointer-events-none z-0">
+        <div class="bracket-tl"></div>
+        <div class="bracket-tr"></div>
+        <div class="bracket-bl"></div>
+        <div class="bracket-br"></div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────
+         VIEW: HOME (Landing Page / Stations)
+         ───────────────────────────────────────────── -->
+    <div id="view-home" class="view-content active relative z-10 w-full">
+        <!-- Hero Section -->
+        <section class="min-h-[580px] flex flex-col justify-center items-center text-center py-12">
+            <div class="max-w-4xl mx-auto flex flex-col items-center gap-8">
+                <span class="font-label-mono-xs text-label-mono-xs text-electric-blue tracking-widest uppercase">// VAK_CORE_STATION.TXT</span>
+                <h1 class="font-stat-lg text-[28px] md:text-headline-xl uppercase tracking-wider text-white leading-tight max-w-3xl drop-shadow-md">
+                    VĀK IS THE CONVERSATION THAT SHIFTS IT.
+                </h1>
+                <p class="font-body-md text-base md:text-body-md text-white/70 max-w-xl text-center leading-relaxed">
+                    There's a version of you that knows exactly what to do next. We built the voice that helps you find them.
+                </p>
+                <div class="mt-4 flex flex-col items-center gap-4">
+                    <button class="group border border-white/30 px-8 py-4 font-label-mono-sm text-label-mono-sm uppercase text-white hover:border-electric-blue hover:text-electric-blue hover:bg-electric-blue/5 transition-all duration-300 flex items-center gap-2 bg-black/60 backdrop-blur-sm" onclick="switchView('chat')">
+                        START THE SHIFT <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    </button>
+                    <div class="flex items-center gap-3 font-label-mono-xs text-[9px] md:text-label-mono-xs text-white/50 uppercase mt-2">
+                        <span>// SYS_READY</span>
+                        <span>//</span>
+                        <span id="current-time-hud">12:56 AM</span>
+                        <span>//</span>
+                        <span class="text-electric-blue">GLOBAL_LISTENER.WAV</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Grid Cards -->
+        <section class="w-full py-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 border border-outline-variant/30 bg-black/70 backdrop-blur-md">
+                <!-- Card 1 -->
+                <div class="p-8 border-b md:border-b-0 md:border-r border-outline-variant/30 relative group hover:bg-surface-container/30 transition-colors duration-300">
+                    <div class="font-label-mono-xs text-label-mono-xs text-electric-blue uppercase absolute top-4 left-4">
+                        [001]
+                    </div>
+                    <div class="mt-8 flex flex-col gap-4">
+                        <h3 class="font-stat-lg text-[20px] uppercase text-white tracking-wider">HEARS THE WAVER</h3>
+                        <p class="font-body-md text-sm text-white/60 leading-relaxed">
+                            Vāk listens to the hesitation and speed in your voice, not just the text. It targets the thing underneath.
+                        </p>
+                    </div>
+                </div>
+                <!-- Card 2 -->
+                <div class="p-8 border-b md:border-b-0 md:border-r border-outline-variant/30 relative group hover:bg-surface-container/30 transition-colors duration-300">
+                    <div class="font-label-mono-xs text-label-mono-xs text-electric-blue uppercase absolute top-4 left-4">
+                        [002]
+                    </div>
+                    <div class="mt-8 flex flex-col gap-4">
+                        <h3 class="font-stat-lg text-[20px] uppercase text-white tracking-wider">CODE SWITCHING</h3>
+                        <p class="font-body-md text-sm text-white/60 leading-relaxed">
+                            English, Hindi, Kannada. The raw, messy, mixed way you naturally speak in life. Vāk understands it all.
+                        </p>
+                    </div>
+                </div>
+                <!-- Card 3 -->
+                <div class="p-8 relative group hover:bg-surface-container/30 transition-colors duration-300">
+                    <div class="font-label-mono-xs text-label-mono-xs text-electric-blue uppercase absolute top-4 left-4">
+                        [003]
+                    </div>
+                    <div class="mt-8 flex flex-col gap-4">
+                        <h3 class="font-stat-lg text-[20px] uppercase text-white tracking-wider">STRICT ALIGNMENT</h3>
+                        <p class="font-body-md text-sm text-white/60 leading-relaxed">
+                            A thinking partner, a mentor. Available at 2am. Never coddling. Anti-sycophantic reflection.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ─────────────────────────────────────────────
+         VIEW: ABOUT (Mission & Status Graphs)
+         ───────────────────────────────────────────── -->
+    <div id="view-about" class="view-content w-full relative z-10">
+        <!-- Hero About -->
+        <section class="py-16">
+            <div class="flex justify-between items-center mb-6 font-label-mono-xs text-label-mono-xs uppercase text-slate-gray tracking-widest">
+                <span>// CAM_03 - MISSION_MANIFESTO</span>
+                <span>// ACCESS_CLEARANCE: UNLOCKED</span>
+            </div>
+            <h1 class="font-stat-lg text-[28px] md:text-[40px] text-white leading-tight mb-8 max-w-4xl">
+                The voice that hears the thing underneath the thing.
+            </h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl font-body-md text-sm md:text-base text-white/70">
+                <p class="leading-relaxed">
+                    Vāk acts as your ultimate sounding board. We designed this product to stand directly in the gap between thought and spoken word. It is not an assistant, a chatbot, or a productivity checklist. It is a presence.
+                </p>
+                <p class="leading-relaxed">
+                    By pairing the right energy (Goggins, Jobs, Stoics, Sadhguru) with real-time acoustic context and long-term cognitive insights layers, we provide the friction required to clarify your mind.
+                </p>
+            </div>
+        </section>
+
+        <!-- Stats HUD Charts -->
+        <section class="py-8">
+            <div class="flex justify-between items-end mb-6 border-b border-surface-variant/40 pb-4">
+                <div>
+                    <span class="block font-label-mono-xs text-label-mono-xs uppercase text-slate-gray tracking-widest mb-1">// COGNITIVE_DATA_FEED</span>
+                    <h2 class="font-stat-lg text-[22px] text-white uppercase tracking-wider">PERSISTENT SYSTEM STATISTICS</h2>
+                </div>
+                <span class="font-label-mono-xs text-label-mono-xs uppercase text-electric-blue tracking-widest">STORAGE ACTIVE // SECURED</span>
+            </div>
+
+            <!-- Disclosed Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                <!-- Card 1 -->
+                <div class="exact-card p-6 flex flex-col relative">
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="font-label-mono-xs text-label-mono-xs uppercase text-slate-gray">// CLARITY METRICS</span>
+                        <span class="font-label-mono-xs text-label-mono-xs uppercase text-status-green flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-status-green rounded-full"></span> RUNNING</span>
+                    </div>
+                    <h3 class="font-label-mono-sm text-label-mono-sm uppercase text-white mb-6 tracking-widest">COGNITIVE CLARITY</h3>
+                    
+                    <!-- Chart SVG -->
+                    <div class="h-28 w-full border-b border-l border-white/20 relative flex items-end mb-4 bg-black/60">
+                        <svg class="w-full h-full absolute inset-0 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
+                            <path class="glow-text" d="M0 90 Q 40 85, 100 15" fill="none" stroke="#2E5BFF" stroke-width="2.5"></path>
+                            <circle cx="100" cy="15" fill="#ffffff" r="3"></circle>
+                        </svg>
+                    </div>
+                    
+                    <div class="flex justify-between items-end font-label-mono-xs text-label-mono-xs uppercase text-slate-gray mt-2">
+                        <div>
+                            <span class="block mb-0.5">LEARNING RATE</span>
+                            <span class="text-white">ICL ACTIVE</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="block mb-0.5">RETENTION</span>
+                            <span class="text-white">100% PERSISTENT</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="exact-card p-6 flex flex-col relative">
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="font-label-mono-xs text-label-mono-xs uppercase text-slate-gray">// SYSTEM RESONANCE</span>
+                        <span class="font-label-mono-xs text-label-mono-xs uppercase text-status-green flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-status-green rounded-full"></span> CALIBRATED</span>
+                    </div>
+                    <h3 class="font-label-mono-sm text-label-mono-sm uppercase text-white mb-6 tracking-widest">RESONANCE CALIBRATION</h3>
+                    
+                    <!-- Chart SVG -->
+                    <div class="h-28 w-full border-b border-l border-white/20 relative flex items-end mb-4 bg-black/60">
+                        <svg class="w-full h-full absolute inset-0 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
+                            <path class="glow-text" d="M0 95 Q 60 90, 100 25" fill="none" stroke="#2E5BFF" stroke-width="2.5"></path>
+                            <circle cx="100" cy="25" fill="#ffffff" r="3"></circle>
+                        </svg>
+                    </div>
+                    
+                    <div class="flex justify-between items-end font-label-mono-xs text-label-mono-xs uppercase text-slate-gray mt-2">
+                        <div>
+                            <span class="block mb-0.5">LATENCY TARGET</span>
+                            <span class="text-white">SUB-400MS</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="block mb-0.5">ENGINE STATUS</span>
+                            <span class="text-white">HYBRID CLOUD</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Classified Grid Section -->
+            <div class="mb-12">
+                <div class="flex justify-between items-center mb-4 font-label-mono-xs text-label-mono-xs uppercase text-slate-gray">
+                    <span class="flex items-center gap-1.5"><div class="w-2 h-2 bg-yellow-500 rounded-sm"></div> SECURE PIPELINE ARCHITECTURE</span>
+                    <span>3 PIPELINES LIVE</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Classified 1 -->
+                    <div class="exact-card p-6 border-dashed border-white/20 flex flex-col bg-black/90">
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="font-label-mono-xs text-label-mono-xs uppercase text-slate-gray">// AUDIO_STEALTH</span>
+                            <span class="font-label-mono-xs text-label-mono-xs uppercase text-yellow-500 flex items-center gap-1.5"><div class="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse"></div> INACTIVE</span>
+                        </div>
+                        <h3 class="font-label-mono-sm text-label-mono-sm uppercase text-white mb-6 tracking-widest">OFFLINE SPEECH</h3>
+                        <div class="h-24 w-full flex flex-col items-center justify-center border border-white/10 mesh-bg relative mb-6">
+                            <span class="font-label-mono-xs text-[8px] uppercase text-white/50 absolute top-2 left-2">// SYS_STEALTH_MODE</span>
+                            <div class="border border-yellow-500/50 text-yellow-500 px-4 py-1.5 font-label-mono-sm text-[10px] uppercase tracking-widest">
+                                LOCAL_ONLY
+                            </div>
+                            <span class="font-label-mono-xs text-[8px] uppercase text-white/50 absolute bottom-2 right-2">MLX_WHISPER_FALLBACK</span>
+                        </div>
+                        <p class="font-label-mono-xs text-[10px] text-white/40 uppercase mt-auto">Local engine calibration pending next release.</p>
+                    </div>
+
+                    <!-- Classified 2 -->
+                    <div class="exact-card p-6 border-dashed border-white/20 flex flex-col bg-black/90">
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="font-label-mono-xs text-label-mono-xs uppercase text-slate-gray">// MEM_STORE</span>
+                            <span class="font-label-mono-xs text-label-mono-xs uppercase text-status-green flex items-center gap-1.5"><div class="w-1.5 h-1.5 bg-status-green rounded-full"></div> LIVE</span>
+                        </div>
+                        <h3 class="font-label-mono-sm text-label-mono-sm uppercase text-white mb-6 tracking-widest">CLOUD VAULT</h3>
+                        <div class="h-24 w-full flex flex-col items-center justify-center border border-white/10 mesh-bg relative mb-6">
+                            <span class="font-label-mono-xs text-[8px] uppercase text-white/50 absolute top-2 left-2">// BUCKET_ACTIVE</span>
+                            <div class="border border-electric-blue text-electric-blue px-4 py-1.5 font-label-mono-sm text-[10px] uppercase tracking-widest glow-text">
+                                SECURED STORAGE
+                            </div>
+                            <span class="font-label-mono-xs text-[8px] uppercase text-white/50 absolute bottom-2 right-2">ISOLATED_NAMESPACE</span>
+                        </div>
+                        <p class="font-label-mono-xs text-[10px] text-white/40 uppercase mt-auto">User profile insights and transcripts isolated under prefix.</p>
+                    </div>
+
+                    <!-- Classified 3 -->
+                    <div class="exact-card p-6 border-dashed border-white/20 flex flex-col bg-black/90">
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="font-label-mono-xs text-label-mono-xs uppercase text-slate-gray">// CLOUD_COMPUTE</span>
+                            <span class="font-label-mono-xs text-label-mono-xs uppercase text-status-green flex items-center gap-1.5"><div class="w-1.5 h-1.5 bg-status-green rounded-full"></div> ACTIVE</span>
+                        </div>
+                        <h3 class="font-label-mono-sm text-label-mono-sm uppercase text-white mb-6 tracking-widest">SERVERLESS</h3>
+                        <div class="h-24 w-full flex flex-col items-center justify-center border border-white/10 mesh-bg relative mb-6">
+                            <span class="font-label-mono-xs text-[8px] uppercase text-white/50 absolute top-2 left-2">// AWS_DEPLOY</span>
+                            <div class="border border-white/30 text-white/70 px-4 py-1.5 font-label-mono-sm text-[10px] uppercase tracking-widest">
+                                LOCALHOST_DEV
+                            </div>
+                            <span class="font-label-mono-xs text-[8px] uppercase text-white/50 absolute bottom-2 right-2">SERVERLESS_HOST_READY</span>
+                        </div>
+                        <p class="font-label-mono-xs text-[10px] text-white/40 uppercase mt-auto">Ready to deploy to AWS serverless on your prompt.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ─────────────────────────────────────────────
+         VIEW: CHAT TERMINAL (Voice Loop Control)
+         ───────────────────────────────────────────── -->
+    <div id="view-chat" class="view-content w-full relative z-10 gap-6">
+        <!-- Column 1: Collapsible Session History Sidebar -->
+        <div id="chat-sidebar" class="w-full md:w-[260px] flex-shrink-0 exact-card p-4 flex flex-col transition-all duration-300 h-[300px] md:h-[600px] overflow-hidden bg-black/90">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4 flex-shrink-0">
+                <span class="font-label-mono-xs text-slate-gray uppercase tracking-wider text-[10px]">// SHIFT ARCHIVES</span>
+            </div>
+            <!-- Start New Shift Button -->
+            <button id="new-shift-btn" class="w-full border border-dashed border-electric-blue/50 text-electric-blue hover:border-electric-blue hover:bg-electric-blue/5 py-2.5 font-label-mono-sm text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 mb-4 flex-shrink-0 cursor-pointer">
+                <span class="material-symbols-outlined text-[16px]">add</span>
+                NEW SHIFT
+            </button>
+            <!-- Scrollable List of Sessions -->
+            <div id="session-list" class="flex-grow overflow-y-auto space-y-2 pr-1">
+                <div class="text-white/30 font-label-mono-xs text-[10px] uppercase text-center mt-8 select-none">// NO PAST SHIFTS</div>
+            </div>
+        </div>
+
+        <!-- Column 2: Voice Orb Controller -->
+        <div id="chat-orb-panel" class="w-full md:flex-1 exact-card p-6 flex flex-col items-center justify-between h-[450px] md:h-[600px] bg-black/90 overflow-hidden">
+            <!-- Header Row -->
+            <div class="w-full flex justify-between items-center border-b border-white/10 pb-3 mb-4 flex-shrink-0 z-30">
+                <div class="flex items-center gap-4">
+                    <!-- Sidebar toggle button -->
+                    <button id="sidebar-toggle-btn" class="font-label-mono-xs text-[9px] text-electric-blue uppercase border border-electric-blue/30 px-2.5 py-1.5 hover:bg-electric-blue/10 transition-colors flex items-center gap-1.5 cursor-pointer select-none">
+                        <span class="material-symbols-outlined text-[12px]" id="sidebar-toggle-icon">menu_open</span>
+                        <span id="sidebar-toggle-text">HIDE SHIFTS</span>
+                    </button>
+                    <span class="font-label-mono-xs text-[9px] md:text-label-mono-xs text-slate-gray uppercase">// VAK_VOICE_CONTROLLER</span>
+                </div>
+
+            </div>
+
+            <!-- Content Area (Centered) -->
+            <div class="flex-grow flex flex-col items-center justify-center w-full">
+                <!-- Central Glowing Visualizer Orb -->
+                <div class="relative w-44 h-44 flex items-center justify-center mt-2">
+                    <div id="orb-pulse-1" class="absolute inset-0 rounded-full border border-electric-blue/30 scale-100 opacity-60 transition-all duration-700"></div>
+                    <div id="orb-pulse-2" class="absolute inset-0 rounded-full border border-electric-blue/15 scale-100 opacity-40 transition-all duration-700 pulse-ring"></div>
+                    
+                    <button id="live-mic-btn" class="w-32 h-32 rounded-full bg-black border border-white/10 flex flex-col items-center justify-center relative z-20 group hover:border-electric-blue hover:shadow-[0_0_20px_rgba(46,91,255,0.25)] transition-all duration-300 active:scale-95 cursor-pointer">
+                        <span id="mic-icon" class="material-symbols-outlined text-[36px] text-white transition-all group-hover:text-electric-blue">mic</span>
+                        <span id="mic-label" class="font-label-mono-xs text-[9px] text-white/50 uppercase tracking-widest mt-2">TAP TO START</span>
+                    </button>
+                </div>
+
+                <div class="mt-8 text-center px-4">
+                    <div id="voice-state-text" class="font-label-mono-sm text-label-mono-sm uppercase text-white/90 tracking-widest select-none">TAP THE CENTER ORB TO INITIATE</div>
+                    <div class="font-label-mono-xs text-[9px] text-white/40 uppercase tracking-wider mt-2 select-none">HOLD MOUSE OR TOUCH TO STREAM SPEECH // RELEASE TO INGEST</div>
+                </div>
+
+                <!-- Clickable Whoop Report Button -->
+                <button id="view-report-btn" class="mt-6 border border-electric-blue text-electric-blue hover:bg-electric-blue hover:text-white px-6 py-3 font-label-mono-sm text-xs uppercase tracking-widest transition-all duration-300 shadow-[0_0_15px_rgba(46,91,255,0.1)] hover:shadow-[0_0_25px_rgba(46,91,255,0.3)] cursor-pointer hidden">
+                    [ VIEW COGNITIVE REPORT ]
+                </button>
+            </div>
+
+            <!-- Active User Profile Insights Snippet -->
+            <div id="insights-snippet" class="w-full max-w-sm border border-white/10 p-3 bg-black/40 text-left hidden flex-shrink-0 mt-4">
+                <div class="font-label-mono-xs text-[9px] text-electric-blue uppercase border-b border-white/10 pb-1.5 mb-1.5 flex justify-between items-center">
+                    <span>// COGNITIVE INSIGHTS</span>
+                    <span class="material-symbols-outlined text-[12px] cursor-help" title="These insights are dynamically synthesized from past sessions.">info</span>
+                </div>
+                <div class="font-label-mono-xs text-[9px] text-white/70 space-y-1 overflow-y-auto max-h-20" id="insights-content">
+                    Loading memory...
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 3: Transcripts -->
+        <div id="chat-transcript-panel" class="w-full md:w-[450px] flex-shrink-0 flex flex-col gap-6 h-[500px] md:h-[600px] overflow-hidden">
+            <!-- Transcript Window -->
+            <div class="flex-grow exact-card p-6 flex flex-col relative overflow-hidden bg-black/90 h-full">
+                <!-- Header -->
+                <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4 flex-shrink-0">
+                    <span class="font-label-mono-xs text-slate-gray uppercase tracking-wider text-[10px]">// SESSION DIALOGUE</span>
+                </div>
+                
+                <div id="voice-transcript-area" class="flex-grow overflow-y-auto pr-2 flex flex-col gap-4 font-body-md text-sm md:text-[15px] pb-4">
+                    <div class="text-white/40 font-label-mono-xs uppercase tracking-widest text-center mt-8 select-none">// START SESSION TO ENGAGE DIALOGUE</div>
+                </div>
+
+                <div class="border-t border-white/10 pt-4 flex gap-3 flex-shrink-0">
+                    <input type="text" id="voice-text-input" placeholder="Type message to direct conversation..." class="flex-grow bg-black border border-white/10 text-white placeholder-white/30 text-xs px-4 py-3 focus:outline-none focus:border-electric-blue transition-colors focus:ring-0 rounded-none font-label-mono-sm" />
+                    <button id="voice-text-send-btn" class="bg-electric-blue border border-electric-blue hover:bg-transparent hover:text-electric-blue text-white px-5 py-3 transition-colors font-label-mono-sm text-xs uppercase flex items-center justify-center cursor-pointer"><span class="material-symbols-outlined text-sm">arrow_forward</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+    <!-- Kanye West Audio Pill (Floating, positioned relative/absolute to bottom-left brackets) -->
+    <div id="kanye-audio-container" class="fixed bottom-[96px] left-4 md:left-margin-desktop z-40">
+        <div class="flex items-center gap-4 bg-black border border-white/20 px-4 py-2 w-[260px] backdrop-blur-md">
+            <!-- Audio Visualizer (Pulses to represent state) -->
+            <div class="flex items-end gap-[3px] h-4 w-6" id="kanye-visualizer">
+                <div class="w-[3px] bg-white h-[40%]"></div>
+                <div class="w-[3px] bg-white h-[60%]"></div>
+                <div class="w-[3px] bg-white h-[30%]"></div>
+                <div class="w-[3px] bg-white h-[50%]"></div>
+            </div>
+            <div class="flex flex-col flex-grow min-w-0">
+                <span class="font-label-mono-xs text-[10px] uppercase text-white font-semibold truncate leading-none">POWER (Instrumental)</span>
+                <span class="font-label-mono-xs text-[8px] uppercase text-white/50 truncate mt-1 leading-none">KANYE WEST</span>
+            </div>
+            <button id="kanye-play-btn" class="text-white hover:text-electric-blue transition-colors flex-shrink-0 cursor-pointer flex items-center justify-center w-8 h-8">
+                <!-- Play SVG -->
+                <svg id="svg-play" class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                <!-- Pause SVG -->
+                <svg id="svg-pause" class="w-5 h-5 fill-current hidden" viewBox="0 0 24 24">
+                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Hidden Audio Elements -->
+    <audio id="kanye-music" loop>
+        <source src="power.mp3" type="audio/mpeg">
+    </audio>
+
+
+
+    <!-- Whoop Cognitive Focus Report Modal -->
+    <div id="whoop-modal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-[100] flex items-center justify-center p-4 transition-all duration-500 opacity-0 pointer-events-none">
+        <div class="bg-[#030308] border border-white/8 w-full max-w-4xl flex flex-col relative max-h-[94vh] overflow-y-auto rounded-none" style="box-shadow: 0 0 80px rgba(46, 91, 255, 0.04), inset 0 1px 0 rgba(255,255,255,0.05);">
+            
+            <!-- Modal Header -->
+            <div class="sticky top-0 z-10 bg-[#030308]/95 backdrop-blur-md border-b border-white/8 px-8 py-5 flex justify-between items-start">
+                <div>
+                    <div class="flex items-center gap-3 mb-1">
+                        <span class="font-label-mono-xs text-white/50 uppercase tracking-[0.2em] text-[9px]">// COGNITIVE_SHIFT_PROFILE</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse"></span>
+                    </div>
+                    <h2 class="font-stat-lg text-xl md:text-2xl uppercase tracking-wider text-white">YOUR SHIFT REPORT</h2>
+                    <p class="font-label-mono-xs text-[9px] text-white/30 mt-1 uppercase tracking-wider">Relative to your own baselines · Distilled by Vāk · <span id="whoop-timestamp"></span></p>
+                </div>
+                <button id="close-report-btn" class="material-symbols-outlined text-white/30 hover:text-white transition-all duration-300 cursor-pointer select-none text-xl hover:rotate-90 mt-1">close</button>
+            </div>
+
+            <div class="px-8 py-6 space-y-8">
+
+            <!-- ═══ SECTION 1: Core Cognitive Metrics ═══ -->
+            <div class="whoop-section" style="animation-delay: 0.1s;">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <!-- Attentional Entropy -->
+                    <div class="flex flex-col justify-between p-4 border border-white/8 bg-black/30 hover:border-white/20 transition-all duration-300 relative">
+                        <div class="flex flex-col gap-1">
+                            <span class="font-label-mono-xs text-[8px] text-white/30 uppercase tracking-widest">// METRIC_01</span>
+                            <h3 class="font-label-mono-xs text-[9px] text-white/70 uppercase tracking-wider font-semibold">ATTENTIONAL ENTROPY</h3>
+                        </div>
+                        <div class="my-4">
+                            <span id="whoop-entropy-title" class="font-stat-lg text-base uppercase text-white block tracking-wider leading-tight">CALIBRATING</span>
+                            <span id="whoop-entropy-subtitle" class="font-label-mono-xs text-[9px] text-white/40 block mt-1 leading-snug">Processing transcript load...</span>
+                        </div>
+                        <div class="w-full mt-2">
+                            <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                <div id="bar-entropy" class="h-full bg-white/60 transition-all duration-1000" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emotional Granularity -->
+                    <div class="flex flex-col justify-between p-4 border border-white/8 bg-black/30 hover:border-white/20 transition-all duration-300 relative">
+                        <div class="flex flex-col gap-1">
+                            <span class="font-label-mono-xs text-[8px] text-white/30 uppercase tracking-widest">// METRIC_02</span>
+                            <h3 class="font-label-mono-xs text-[9px] text-white/70 uppercase tracking-wider font-semibold">EMOTIONAL GRANULARITY</h3>
+                        </div>
+                        <div class="my-4">
+                            <span id="whoop-granularity-title" class="font-stat-lg text-base uppercase text-white block tracking-wider leading-tight">CALIBRATING</span>
+                            <span id="whoop-granularity-subtitle" class="font-label-mono-xs text-[9px] text-white/40 block mt-1 leading-snug">Mapping granularity...</span>
+                        </div>
+                        <div class="w-full mt-2">
+                            <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                <div id="bar-granularity" class="h-full bg-white/60 transition-all duration-1000" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Narrative Coherence -->
+                    <div class="flex flex-col justify-between p-4 border border-white/8 bg-black/30 hover:border-white/20 transition-all duration-300 relative">
+                        <div class="flex flex-col gap-1">
+                            <span class="font-label-mono-xs text-[8px] text-white/30 uppercase tracking-widest">// METRIC_03</span>
+                            <h3 class="font-label-mono-xs text-[9px] text-white/70 uppercase tracking-wider font-semibold">NARRATIVE COHERENCE</h3>
+                        </div>
+                        <div class="my-4">
+                            <span id="whoop-coherence-title" class="font-stat-lg text-base uppercase text-white block tracking-wider leading-tight">CALIBRATING</span>
+                            <span id="whoop-coherence-subtitle" class="font-label-mono-xs text-[9px] text-white/40 block mt-1 leading-snug">Detecting agency posture...</span>
+                        </div>
+                        <div class="w-full mt-2">
+                            <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                <div id="bar-coherence" class="h-full bg-white/60 transition-all duration-1000" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attentional Avoidance -->
+                    <div class="flex flex-col justify-between p-4 border border-white/8 bg-black/30 hover:border-white/20 transition-all duration-300 relative">
+                        <div class="flex flex-col gap-1">
+                            <span class="font-label-mono-xs text-[8px] text-white/30 uppercase tracking-widest">// METRIC_04</span>
+                            <h3 class="font-label-mono-xs text-[9px] text-white/70 uppercase tracking-wider font-semibold">ATTENTIONAL AVOIDANCE</h3>
+                        </div>
+                        <div class="my-4">
+                            <span id="whoop-avoidance-title" class="font-stat-lg text-base uppercase text-white block tracking-wider leading-tight">CALIBRATING</span>
+                            <span id="whoop-avoidance-subtitle" class="font-label-mono-xs text-[9px] text-white/40 block mt-1 leading-snug">Sensing avoidance loops...</span>
+                        </div>
+                        <div class="w-full mt-2">
+                            <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                <div id="bar-avoidance" class="h-full bg-white/60 transition-all duration-1000" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cognitive Momentum -->
+                    <div class="flex flex-col justify-between p-4 border border-white/8 bg-black/30 hover:border-white/20 transition-all duration-300 relative">
+                        <div class="flex flex-col gap-1">
+                            <span class="font-label-mono-xs text-[8px] text-white/30 uppercase tracking-widest">// METRIC_05</span>
+                            <h3 class="font-label-mono-xs text-[9px] text-white/70 uppercase tracking-wider font-semibold">COGNITIVE MOMENTUM</h3>
+                        </div>
+                        <div class="my-4">
+                            <span id="whoop-momentum-core-title" class="font-stat-lg text-base uppercase text-white block tracking-wider leading-tight">CALIBRATING</span>
+                            <span id="whoop-momentum-core-subtitle" class="font-label-mono-xs text-[9px] text-white/40 block mt-1 leading-snug">Measuring translation flow...</span>
+                        </div>
+                        <div class="w-full mt-2">
+                            <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                <div id="bar-momentum-core" class="h-full bg-white/60 transition-all duration-1000" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ SECTION 2: Deep Analysis Grid ═══ -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Focus Rhythm -->
+                <div class="whoop-section border border-white/5 bg-black/20 p-5" style="animation-delay: 0.2s;">
+                    <div class="whoop-section-header">
+                        <div class="whoop-section-icon"><span class="material-symbols-outlined text-sm">schedule</span></div>
+                        <div>
+                            <h3 class="font-label-mono-sm text-xs uppercase text-white tracking-wider font-semibold">Focus Rhythm</h3>
+                            <span class="font-label-mono-xs text-[8px] text-white/25 uppercase">// TEMPORAL_CLARITY_MAP</span>
+                        </div>
+                    </div>
+                    <!-- Sparkline -->
+                    <div class="h-12 w-full mb-4 relative">
+                        <svg viewBox="0 0 200 40" class="w-full h-full" preserveAspectRatio="none">
+                            <defs>
+                                <linearGradient id="monoSparkGrad" x1="0" x2="0" y1="0" y2="1">
+                                    <stop offset="0%" stop-color="rgba(255, 255, 255, 0.08)"/>
+                                    <stop offset="100%" stop-color="rgba(255, 255, 255, 0.0)"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M0,35 Q25,30 50,20 T100,15 T150,25 T200,10" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" class="whoop-sparkline" opacity="0.8"/>
+                            <path d="M0,35 Q25,30 50,20 T100,15 T150,25 T200,10 L200,40 L0,40 Z" fill="url(#monoSparkGrad)"/>
+                            <circle cx="200" cy="10" r="3" fill="#ffffff" class="animate-pulse"/>
+                        </svg>
+                    </div>
+                    <div class="font-label-mono-sm">
+                        <div class="whoop-metric-row">
+                            <span class="whoop-label">Peak Clarity Window</span>
+                            <span id="rhythm-peak" class="whoop-value">Early Mornings (8 AM)</span>
+                        </div>
+                        <div class="whoop-metric-row">
+                            <span class="whoop-label">Focus Consistency</span>
+                            <div class="flex items-center gap-2">
+                                <div class="w-16 h-1 bg-white/10 rounded-full overflow-hidden border border-white/5"><div class="whoop-bar" id="bar-consistency" style="width: 0%;"></div></div>
+                                <span id="rhythm-consistency" class="whoop-value">0 / 10</span>
+                            </div>
+                        </div>
+                        <div class="whoop-metric-row flex-col !items-start gap-1">
+                            <span class="whoop-label flex items-center">// Distraction Fingerprint</span>
+                            <span id="rhythm-distraction" class="whoop-value !text-left !max-w-full text-white/70 font-normal">Processing data...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emotional Weather -->
+                <div class="whoop-section border border-white/5 bg-black/20 p-5" style="animation-delay: 0.3s;">
+                    <div class="whoop-section-header">
+                        <div class="whoop-section-icon"><span class="material-symbols-outlined text-sm">mood</span></div>
+                        <div>
+                            <h3 class="font-label-mono-sm text-xs uppercase text-white tracking-wider font-semibold">Emotional Weather</h3>
+                            <span class="font-label-mono-xs text-[8px] text-white/25 uppercase">// AFFECT_BASELINE_TRACKER</span>
+                        </div>
+                    </div>
+                    <!-- Mini mood trend -->
+                    <div class="h-12 w-full mb-4 relative">
+                        <svg viewBox="0 0 200 40" class="w-full h-full" preserveAspectRatio="none">
+                            <path d="M0,25 Q30,20 60,22 T120,18 T180,15 T200,12" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" class="whoop-sparkline" opacity="0.7"/>
+                            <path d="M0,25 Q30,20 60,22 T120,18 T180,15 T200,12 L200,40 L0,40 Z" fill="url(#monoSparkGrad)"/>
+                            <circle cx="200" cy="12" r="3" fill="#ffffff" class="animate-pulse"/>
+                        </svg>
+                    </div>
+                    <div class="font-label-mono-sm">
+                        <div class="whoop-metric-row">
+                            <span class="whoop-label">Mood Baseline</span>
+                            <span id="weather-mood" class="whoop-value">Alert but guarded</span>
+                        </div>
+                        <div class="whoop-metric-row">
+                            <span class="whoop-label">Drift Detection</span>
+                            <span id="weather-drift" class="whoop-value">Trending lighter</span>
+                        </div>
+                        <div class="whoop-metric-row">
+                            <span class="whoop-label">Resilience Pattern</span>
+                            <span id="weather-resilience" class="whoop-value">Quick recovery</span>
+                        </div>
+                        <div class="whoop-metric-row flex-col !items-start gap-1">
+                            <span class="whoop-label">Emotional Vocabulary</span>
+                            <span id="weather-vocab" class="whoop-value !text-left !max-w-full text-white/70 font-normal">Calibrating granularity...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Momentum Patterns -->
+                <div class="whoop-section border border-white/5 bg-black/20 p-5" style="animation-delay: 0.4s;">
+                    <div class="whoop-section-header">
+                        <div class="whoop-section-icon"><span class="material-symbols-outlined text-sm">trending_up</span></div>
+                        <div>
+                            <h3 class="font-label-mono-sm text-xs uppercase text-white tracking-wider font-semibold">Momentum Patterns</h3>
+                            <span class="font-label-mono-xs text-[8px] text-white/25 uppercase">// EXECUTION_VELOCITY</span>
+                        </div>
+                    </div>
+                    <!-- Action ratio bar -->
+                    <div class="mb-4 p-3 border border-white/5 bg-black/30">
+                        <div class="flex justify-between mb-2">
+                            <span class="font-label-mono-xs text-[8px] text-white/40 uppercase">Talk-to-Action Conversion</span>
+                            <span id="momentum-ratio" class="font-label-mono-xs text-[9px] text-white/70 font-semibold">3 out of 5 statements</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                            <div class="whoop-bar h-full rounded-full" id="bar-momentum" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div class="font-label-mono-sm">
+                        <div class="whoop-metric-row flex-col !items-start gap-1">
+                            <span class="whoop-label flex items-center">// Avoidance Loops</span>
+                            <span id="momentum-loops" class="whoop-value !text-left !max-w-full text-white/70 font-normal">Tracking loops...</span>
+                        </div>
+                        <div class="whoop-metric-row flex-col !items-start gap-1">
+                            <span class="whoop-label flex items-center">// Breakthrough Moments</span>
+                            <span id="momentum-breakthrough" class="whoop-value !text-left !max-w-full text-white/70 font-normal">Measuring pivot points...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Identity Signals -->
+                <div class="whoop-section border border-white/5 bg-black/20 p-5" style="animation-delay: 0.5s;">
+                    <div class="whoop-section-header">
+                        <div class="whoop-section-icon"><span class="material-symbols-outlined text-sm">fingerprint</span></div>
+                        <div>
+                            <h3 class="font-label-mono-sm text-xs uppercase text-white tracking-wider font-semibold">Identity Signals</h3>
+                            <span class="font-label-mono-xs text-[8px] text-white/25 uppercase">// NARRATIVE_COHERENCE</span>
+                        </div>
+                    </div>
+                    <div class="font-label-mono-sm">
+                        <div class="whoop-metric-row flex-col !items-start gap-2 pb-3">
+                            <span class="whoop-label">What You Talk About vs. What Matters</span>
+                            <div class="w-full flex gap-2">
+                                <div class="flex-1 p-2 border border-white/5 bg-black/40">
+                                    <span class="font-label-mono-xs text-[7px] text-white/50 uppercase block mb-1">TALKS ABOUT</span>
+                                    <span id="identity-gap-talks" class="text-[10px] text-white/80">Long-term vision</span>
+                                </div>
+                                <div class="flex items-center text-white/20"><span class="material-symbols-outlined text-xs">compare_arrows</span></div>
+                                <div class="flex-1 p-2 border border-white/5 bg-black/40">
+                                    <span class="font-label-mono-xs text-[7px] text-white/50 uppercase block mb-1">ACTUALLY DOES</span>
+                                    <span id="identity-gap-does" class="text-[10px] text-white/80">Minor UI tweaks</span>
+                                </div>
+                            </div>
+                            <span id="identity-gap" class="hidden"></span>
+                        </div>
+                        <div class="whoop-metric-row flex-col !items-start gap-1">
+                            <span class="whoop-label flex items-center">// Values in Conflict</span>
+                            <span id="identity-conflict" class="whoop-value !text-left !max-w-full text-white/70 font-normal">Autonomy desires vs external validation</span>
+                        </div>
+                        <div class="whoop-metric-row flex-col !items-start gap-1">
+                            <span class="whoop-label">Self-Narrative Drift</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="font-label-mono-xs text-white/60">[↑]</span>
+                                <span id="identity-narrative" class="whoop-value !text-left !max-w-full text-white/70 font-normal">Calibrating...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ═══ SECTION 3: Actionable Insights ═══ -->
+            <div class="whoop-section" style="animation-delay: 0.6s;">
+                <div class="whoop-section-header mb-2">
+                    <div class="whoop-section-icon"><span class="material-symbols-outlined text-sm">lightbulb</span></div>
+                    <div>
+                        <h3 class="font-label-mono-sm text-xs uppercase text-white tracking-wider font-semibold">What Vāk Sees</h3>
+                        <span class="font-label-mono-xs text-[8px] text-white/25 uppercase">// REFLECTIVE_SYNTHESIS</span>
+                    </div>
+                </div>
+                <div id="whoop-insights" class="space-y-0">
+                    <div class="whoop-insight-card">
+                        <p class="font-body-md text-sm text-white/90 leading-relaxed">Analyzing conversation transcript...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Watermark -->
+            <div class="flex justify-between items-center pt-4 border-t border-white/5 mt-2">
+                <span class="font-label-mono-xs text-[8px] text-white/15 uppercase tracking-widest">VĀK COGNITIVE ENGINE v0.1</span>
+                <span class="font-label-mono-xs text-[8px] text-white/15 uppercase tracking-widest">ALL METRICS RELATIVE TO YOUR PERSONAL BASELINE</span>
+            </div>
+
+            </div>
+        </div>
+    </div>
+
+<script src="app.js"></script>
+</body>
+</html>
