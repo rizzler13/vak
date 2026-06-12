@@ -1,0 +1,29 @@
+# FastAPI + server
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+websockets>=15.0
+python-dotenv>=1.1.0
+pydantic-settings>=2.9.0
+
+# LLM
+groq>=0.25.0
+
+# TTS - Kokoro (local, offline)
+kokoro-onnx>=0.4.4
+
+# Audio processing
+numpy>=2.0.0
+soundfile>=0.13.0
+
+# Deepgram STT (streaming)
+deepgram-sdk>=4.0.0
+
+# Cartesia TTS (streaming, optional)
+cartesia>=1.5.0
+
+# AWS S3
+boto3>=1.34.0
+
+# Note: mlx-whisper requires Python <3.13
+# Using Deepgram as primary STT in venv
+# System mlx-whisper available as fallback via subprocess
