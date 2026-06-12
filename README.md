@@ -1,2 +1,4 @@
-# vak
-# vak
+## Project Vāk
+lets grok the sentient
+
+
