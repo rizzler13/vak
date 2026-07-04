@@ -10,6 +10,13 @@ DISTRIBUTION_ID="${2:-}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 FRONTEND_DIR="$SCRIPT_DIR/../web_test"
 
+# Load credentials from .env if present
+if [ -f "$SCRIPT_DIR/../.env" ]; then
+    export AWS_ACCESS_KEY_ID=$(grep -E "^AWS_ACCESS_KEY_ID=" "$SCRIPT_DIR/../.env" | cut -d'=' -f2- | cut -d'#' -f1 | tr -d ' ')
+    export AWS_SECRET_ACCESS_KEY=$(grep -E "^AWS_SECRET_ACCESS_KEY=" "$SCRIPT_DIR/../.env" | cut -d'=' -f2- | cut -d'#' -f1 | tr -d ' ')
+    export AWS_REGION=$(grep -E "^AWS_REGION=" "$SCRIPT_DIR/../.env" | cut -d'=' -f2- | cut -d'#' -f1 | tr -d ' ')
+fi
+
 # Wrapper to avoid broken brew aws command issues on mac
 aws() {
     python3 -m awscli "$@"
