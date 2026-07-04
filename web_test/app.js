@@ -6,6 +6,10 @@
  * Also supports text input for testing without a mic.
  */
 
+// ── Config ──
+const API_URL = window.VAK_API_URL || `http://${location.hostname || 'localhost'}:8000`;
+const WS_URL = API_URL.replace(/^http/, 'ws');
+
 // ── State ──
 let ws = null;
 let mediaRecorder = null;
@@ -165,12 +169,7 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-// ── WebSocket Voice Loop ──
 function connectWS() {
-    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = location.hostname || 'localhost';
-    const port = 8000;
-
     // Retrieve or generate a persistent session ID
     let sessionId = localStorage.getItem('vak_session_id');
     if (!sessionId) {
@@ -178,7 +177,7 @@ function connectWS() {
         localStorage.setItem('vak_session_id', sessionId);
     }
 
-    ws = new WebSocket(`${protocol}//${host}:${port}/ws/voice?session_id=${sessionId}`);
+    ws = new WebSocket(`${WS_URL}/ws/voice?session_id=${sessionId}`);
 
     ws.onopen = () => {
         if (wsDot) wsDot.className = 'w-2.5 h-2.5 rounded-full bg-status-green pulse-ring relative';
@@ -599,8 +598,7 @@ function flashInsightsSnippet() {
 
 async function fetchHealth() {
     try {
-        const host = location.hostname || 'localhost';
-        const res = await fetch(`http://${host}:8000/health`);
+        const res = await fetch(`${API_URL}/health`);
         const data = await res.json();
         const engines = data.engines || {};
         if (activeEnginesHud) {
@@ -714,8 +712,7 @@ function switchSession(sessionId) {
 // ── Fetch Past Sessions ──
 async function fetchSessions() {
     try {
-        const host = location.hostname || 'localhost';
-        const res = await fetch(`http://${host}:8000/sessions`);
+        const res = await fetch(`${API_URL}/sessions`);
         const data = await res.json();
         renderSessionList(data.sessions || []);
     } catch (e) {
@@ -823,8 +820,7 @@ async function loadAndRenderReport() {
     });
 
     try {
-        const host = location.hostname || 'localhost';
-        const res = await fetch(`http://${host}:8000/sessions/${sessionId}/report`);
+        const res = await fetch(`${API_URL}/sessions/${sessionId}/report`);
         const report = await res.json();
 
         // Helper to parse metric title and subtitle
