@@ -7,7 +7,12 @@
  */
 
 // ── Config ──
-const API_URL = window.VAK_API_URL || `http://${location.hostname || 'localhost'}:8000`;
+// Use window.VAK_API_URL if explicitly injected. Otherwise, if running on localhost,
+// connect directly to the EC2 backend. If running in production on CloudFront,
+// use relative paths to leverage CloudFront's reverse proxy behavior.
+const API_URL = window.VAK_API_URL || (location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+    ? 'http://52.86.214.242:8000'
+    : window.location.origin);
 const WS_URL = API_URL.replace(/^http/, 'ws');
 
 // ── State ──
