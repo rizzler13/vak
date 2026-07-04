@@ -41,32 +41,7 @@ python3.11 -m venv .venv
 # ── 5. Create .env from SSM Parameter Store ──
 echo ">>> Loading environment variables from SSM..."
 ENV_FILE="$APP_DIR/.env"
-
-# Fetch secrets from SSM Parameter Store (encrypted)
-get_ssm_param() {
-    aws ssm get-parameter --name "$1" --with-decryption --query "Parameter.Value" --output text --region us-east-1 2>/dev/null || echo ""
-}
-
-cat > "$ENV_FILE" << EOF
-GROQ_API_KEY=$(get_ssm_param "/vak/GROQ_API_KEY")
-DEEPGRAM_API_KEY=$(get_ssm_param "/vak/DEEPGRAM_API_KEY")
-CARTESIA_API_KEY=$(get_ssm_param "/vak/CARTESIA_API_KEY")
-CEREBRAS_API_KEY=$(get_ssm_param "/vak/CEREBRAS_API_KEY")
-OPENROUTER_API_KEY=$(get_ssm_param "/vak/OPENROUTER_API_KEY")
-
-# AWS — uses IAM Instance Role, no keys needed
-AWS_REGION=us-east-1
-AWS_S3_BUCKET=vak-session-history
-AWS_S3_PREFIX=vak/
-
-# Server
-HOST=0.0.0.0
-PORT=8000
-
-# TTS — local Kokoro (free, uses CPU)
-USE_LOCAL_TTS=true
-ENVIRONMENT=production
-EOF
+/home/vak/app/backend/.venv/bin/python3 "$APP_DIR/deploy/generate_env.py"
 
 chown vak:vak "$ENV_FILE"
 chmod 600 "$ENV_FILE"
