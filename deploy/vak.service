@@ -14,17 +14,6 @@ RestartSec=5
 StartLimitIntervalSec=60
 StartLimitBurst=5
 
-# Security hardening
-NoNewPrivileges=true
-ProtectSystem=strict
-ProtectHome=read-only
-ReadWritePaths=/home/vak/app/backend/data
-PrivateTmp=true
-
-# Memory limit — prevent OOM from killing other services
-MemoryMax=900M
-MemoryHigh=750M
-
 # Logging
 StandardOutput=journal
 StandardError=journal
