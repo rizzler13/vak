@@ -821,6 +821,14 @@ async function loadAndRenderReport() {
 
     try {
         const res = await fetch(`${API_URL}/sessions/${sessionId}/report`);
+        if (!res.ok) {
+            let detail = 'No dialogue history available. Start a session in the terminal and speak/type to generate your focus report.';
+            try {
+                const errData = await res.json();
+                detail = errData.detail || detail;
+            } catch (err) {}
+            throw new Error(detail);
+        }
         const report = await res.json();
 
         // Helper to parse metric title and subtitle
@@ -956,9 +964,23 @@ async function loadAndRenderReport() {
 
     } catch (e) {
         console.error('Failed to load focus report:', e);
-        document.getElementById('whoop-insights').innerHTML = '<div class="whoop-insight-card"><p class="font-body-md text-sm text-white/60">Failed to load reflective report from focus router. Backend may be unreachable.</p></div>';
+        document.getElementById('whoop-insights').innerHTML = `
+            <div class="whoop-insight-card">
+                <p class="font-body-md text-sm text-white/70 leading-relaxed mb-2">// COGNITIVE_DATA_UNAVAILABLE</p>
+                <p class="font-body-md text-sm text-white/50 leading-relaxed">${e.message || 'No dialogue history available. Start a session in the terminal and speak/type to generate your focus report.'}</p>
+            </div>
+        `;
     }
 }
+
+function openReport() {
+    const whoopModal = document.getElementById('whoop-modal');
+    if (whoopModal) {
+        whoopModal.classList.add('active');
+        loadAndRenderReport();
+    }
+}
+window.openReport = openReport;
 
 // Initialize connection if in Chat view already, otherwise connect when switched
 const activeView = document.querySelector('.view-content.active');
