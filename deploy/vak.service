@@ -8,8 +8,7 @@ Type=simple
 User=vak
 Group=vak
 WorkingDirectory=/home/vak/app/backend
-Environment="PATH=/usr/local/bin:/usr/bin:/bin"
-ExecStart=/usr/bin/python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --ws-max-size 5242880
+ExecStart=/home/vak/app/backend/.venv/bin/python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --ws-max-size 5242880
 Restart=always
 RestartSec=5
 StartLimitIntervalSec=60

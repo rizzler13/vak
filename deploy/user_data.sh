@@ -15,10 +15,6 @@ echo ">>> Installing system dependencies..."
 dnf update -y
 dnf install -y python3.11 python3.11-pip python3.11-devel git gcc
 
-# Set python3.11 as default
-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-alternatives --set python3 /usr/bin/python3.11
-
 # ── 2. Create app user ──
 echo ">>> Creating vak user..."
 useradd -m -s /bin/bash vak || true
@@ -38,8 +34,9 @@ chown -R vak:vak "$APP_DIR"
 # ── 4. Install Python dependencies ──
 echo ">>> Installing Python dependencies..."
 cd "$APP_DIR/backend"
-python3 -m pip install --upgrade pip
-python3 -m pip install -r requirements.txt
+python3.11 -m venv .venv
+.venv/bin/pip install --upgrade pip
+.venv/bin/pip install -r requirements.txt
 
 # ── 5. Create .env from SSM Parameter Store ──
 echo ">>> Loading environment variables from SSM..."
