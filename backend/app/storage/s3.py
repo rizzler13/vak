@@ -41,7 +41,10 @@ class S3HistoryStore:
         if not self.prefix.endswith("/"):
             self.prefix += "/"
             
-        self.enabled = bool(settings.aws_access_key_id and settings.aws_s3_bucket)
+        self.enabled = bool(
+            (settings.aws_access_key_id and settings.aws_s3_bucket) or
+            (settings.environment == "production" and settings.aws_s3_bucket)
+        )
 
         if not self.enabled:
             logger.warning("AWS credentials or S3 bucket not fully configured. Using local filesystem storage fallback.")
@@ -51,12 +54,14 @@ class S3HistoryStore:
 
         try:
             logger.info("Initializing S3 Client...")
-            self.s3_client = boto3.client(
-                "s3",
-                aws_access_key_id=settings.aws_access_key_id,
-                aws_secret_access_key=settings.aws_secret_access_key,
-                region_name=settings.aws_region or "us-east-1",
-            )
+            client_kwargs = {
+                "region_name": settings.aws_region or "us-east-1"
+            }
+            if settings.aws_access_key_id:
+                client_kwargs["aws_access_key_id"] = settings.aws_access_key_id
+                client_kwargs["aws_secret_access_key"] = settings.aws_secret_access_key
+            
+            self.s3_client = boto3.client("s3", **client_kwargs)
             self.executor = ThreadPoolExecutor(max_workers=4)
             self._ensure_bucket_exists()
         except Exception as e:
