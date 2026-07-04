@@ -194,7 +194,7 @@ function connectWS() {
         if (msg.type === 'session_init') {
             // Load user insights
             renderInsights(msg.insights);
-            
+
             // Clean up and load transcripts
             transcriptArea.innerHTML = '';
             if (msg.history && msg.history.length > 0) {
@@ -210,7 +210,7 @@ function connectWS() {
                 const viewReportBtn = document.getElementById('view-report-btn');
                 if (viewReportBtn) viewReportBtn.classList.add('hidden');
             }
-        } 
+        }
         else if (msg.type === 'transcript') {
             // Append incoming transcripts in real-time
             if (msg.role === 'user') {
@@ -219,12 +219,12 @@ function connectWS() {
             } else if (msg.role === 'assistant') {
                 appendAssistantSentence(msg.text);
             }
-        } 
+        }
         else if (msg.type === 'insights') {
             // Background update received from insights analyzer
             renderInsights(msg.data);
             flashInsightsSnippet();
-        } 
+        }
         else if (msg.type === 'audio') {
             // Decode base64 audio and queue for playback
             const audioBytes = base64ToArrayBuffer(msg.data);
@@ -233,13 +233,13 @@ function connectWS() {
                 setState('speaking');
                 playNextChunk();
             }
-        } 
+        }
         else if (msg.type === 'metrics') {
             // Update HUD Timings
             if (metricStt) metricStt.textContent = msg.stt_ms > 0 ? `${msg.stt_ms.toFixed(0)} ms` : '0 ms';
             if (metricLlm) metricLlm.textContent = `${msg.llm_ms.toFixed(0)} ms`;
             if (metricTts) metricTts.textContent = `${msg.tts_ms.toFixed(0)} ms`;
-        } 
+        }
         else if (msg.type === 'done') {
             // Stream complete
             if (!isPlaying && audioQueue.length === 0) {
@@ -475,7 +475,7 @@ function setState(state) {
         micLabel.textContent = 'TAP TO SPEAK';
         voiceStateText.textContent = 'SYS_READY // READY TO SHIFT';
         voiceStateText.className = 'font-label-mono-sm text-label-mono-sm uppercase text-white/90 tracking-widest select-none';
-    } 
+    }
     else if (state === 'listening') {
         orb1.classList.add('border-red-500/50', 'scale-110');
         orb2.classList.add('border-red-500/30');
@@ -485,7 +485,7 @@ function setState(state) {
         micLabel.textContent = 'RECORDING';
         voiceStateText.textContent = 'LISTENING // STREAMING SPEECH';
         voiceStateText.className = 'font-label-mono-sm text-label-mono-sm uppercase text-red-500 tracking-widest select-none animate-pulse';
-    } 
+    }
     else if (state === 'thinking') {
         orb1.classList.add('border-electric-blue', 'animate-rotate');
         orb2.classList.add('border-transparent');
@@ -495,7 +495,7 @@ function setState(state) {
         micLabel.textContent = 'THINKING';
         voiceStateText.textContent = 'THINKING // INGESTING INPUT';
         voiceStateText.className = 'font-label-mono-sm text-label-mono-sm uppercase text-electric-blue tracking-widest select-none';
-    } 
+    }
     else if (state === 'speaking') {
         orb1.classList.add('border-status-green/50', 'scale-105');
         orb2.classList.add('border-status-green/30');
@@ -560,7 +560,7 @@ function appendAssistantSentence(text) {
         // Append sentence to active bubble
         currentAssistantBubble.textContent += ' ' + text;
     }
-    
+
     transcriptArea.scrollTop = transcriptArea.scrollHeight;
 }
 
@@ -738,11 +738,11 @@ function renderSessionList(sessions) {
     sessionList.innerHTML = sessions.map(s => {
         const isActive = s.session_id === activeSessionId;
         const date = new Date(s.last_modified);
-        const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + 
-                              date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-        
-        const activeClass = isActive 
-            ? 'border-electric-blue bg-electric-blue/10 text-white shadow-[0_0_10px_rgba(46,91,255,0.15)]' 
+        const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' +
+            date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+        const activeClass = isActive
+            ? 'border-electric-blue bg-electric-blue/10 text-white shadow-[0_0_10px_rgba(46,91,255,0.15)]'
             : 'border-white/10 hover:border-white/30 text-white/70 hover:text-white bg-black/40';
 
         const displayName = s.title || `SHIFT_${s.session_id.substring(0, 6).toUpperCase()}`;
@@ -946,7 +946,7 @@ async function loadAndRenderReport() {
         // Insights rendering — premium cards
         const insights = report.actionable_insights || [];
         if (insights.length > 0) {
-            document.getElementById('whoop-insights').innerHTML = insights.map((ins, i) => 
+            document.getElementById('whoop-insights').innerHTML = insights.map((ins, i) =>
                 `<div class="whoop-insight-card" style="animation: fade-slide-up 0.4s ${0.7 + i * 0.15}s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0;">
                     <div class="flex items-start gap-3">
                         <span class="font-label-mono-xs text-white/40 text-[9px] mt-0.5 flex-shrink-0">[${String(i + 1).padStart(2, '0')}]</span>

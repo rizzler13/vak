@@ -98,14 +98,14 @@ class LocalSTT(STTEngine):
             tmp_path = f.name
 
         try:
-            # Run mlx_whisper via system python
+            # Run mlx_whisper via system python — path passed as argument to avoid injection
             script = f"""
-import json, mlx_whisper
-result = mlx_whisper.transcribe("{tmp_path}", path_or_hf_repo="mlx-community/whisper-{self._model}-mlx")
+import json, sys, mlx_whisper
+result = mlx_whisper.transcribe(sys.argv[1], path_or_hf_repo="mlx-community/whisper-{self._model}-mlx")
 print(json.dumps({{"text": result["text"]}}))
 """
             result = subprocess.run(
-                ["python3", "-c", script],
+                ["python3", "-c", script, tmp_path],
                 capture_output=True,
                 text=True,
                 timeout=30,

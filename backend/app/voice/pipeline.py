@@ -23,6 +23,15 @@ from app.storage.s3 import S3HistoryStore
 logger = logging.getLogger("vak.pipeline")
 
 
+def _bg_task_done(task: asyncio.Task):
+    """Callback to log exceptions from fire-and-forget background tasks."""
+    if task.cancelled():
+        return
+    exc = task.exception()
+    if exc:
+        logger.error(f"Background task failed: {exc}", exc_info=exc)
+
+
 @dataclass
 class PipelineMetrics:
     """Timing metrics for a single pipeline run."""
@@ -129,7 +138,8 @@ class VoicePipeline:
 
         # Store in history so the LLM knows what vāk said
         session.history.append({"role": "assistant", "content": opening_text})
-        asyncio.create_task(self._storage.save_history(session_id, session.history, session.title))
+        task = asyncio.create_task(self._storage.save_history(session_id, session.history, session.title))
+        task.add_done_callback(_bg_task_done)
 
         return audio
 
@@ -221,10 +231,12 @@ class VoicePipeline:
                 logger.error(f"Failed to generate session title: {e}")
                 session.title = f"Shift {session_id[:6].upper()}"
                 
-        asyncio.create_task(self._storage.save_history(session_id, session.history, session.title))
+        task = asyncio.create_task(self._storage.save_history(session_id, session.history, session.title))
+        task.add_done_callback(_bg_task_done)
         
         # Trigger background synthesis of insights
-        asyncio.create_task(self._update_insights_background("default", session.history, session, on_meta))
+        task = asyncio.create_task(self._update_insights_background("default", session.history, session, on_meta))
+        task.add_done_callback(_bg_task_done)
 
         # ── Log metrics ──
         metrics.log()
@@ -294,10 +306,12 @@ class VoicePipeline:
                 logger.error(f"Failed to generate session title: {e}")
                 session.title = f"Shift {session_id[:6].upper()}"
                 
-        asyncio.create_task(self._storage.save_history(session_id, session.history, session.title))
+        task = asyncio.create_task(self._storage.save_history(session_id, session.history, session.title))
+        task.add_done_callback(_bg_task_done)
         
         # Trigger background synthesis of insights
-        asyncio.create_task(self._update_insights_background("default", session.history, session, on_meta))
+        task = asyncio.create_task(self._update_insights_background("default", session.history, session, on_meta))
+        task.add_done_callback(_bg_task_done)
         
         metrics.log()
         if on_meta:

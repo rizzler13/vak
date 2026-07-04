@@ -1,0 +1,35 @@
+[Unit]
+Description=vāk — Voice-first thinking partner
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=vak
+Group=vak
+WorkingDirectory=/home/vak/app/backend
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+ExecStart=/usr/bin/python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --ws-max-size 5242880
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/vak/app/backend/data
+PrivateTmp=true
+
+# Memory limit — prevent OOM from killing other services
+MemoryMax=900M
+MemoryHigh=750M
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vak
+
+[Install]
+WantedBy=multi-user.target

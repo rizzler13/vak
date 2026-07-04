@@ -69,14 +69,12 @@ class KokoroTTS(TTSEngine):
         import ssl
         import urllib.request
 
-        # Handle macOS SSL certificate issues
+        # Handle SSL certificate verification
         try:
             import certifi
             ssl_context = ssl.create_default_context(cafile=certifi.where())
         except ImportError:
             ssl_context = ssl.create_default_context()
-            ssl_context.check_hostname = False
-            ssl_context.verify_mode = ssl.CERT_NONE
 
         base_url = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0"
 

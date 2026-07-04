@@ -15,4 +15,3 @@ class HealthResponse(BaseModel):
     """Health check response."""
     status: str
     engines: dict[str, str]
-    keys: dict[str, bool]

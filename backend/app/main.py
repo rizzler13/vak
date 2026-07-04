@@ -9,6 +9,7 @@ import base64
 import json
 import logging
 import uuid
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,28 +32,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger("vak.server")
 
-# ── App ──
-app = FastAPI(
-    title="vāk",
-    description="Voice-first thinking partner",
-    version="0.1.0",
-)
-
-# CORS — allow everything in dev
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # ── Global state (initialized on startup) ──
 pipeline: VoicePipeline | None = None
 
 
-@app.on_event("startup")
-async def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """Initialize engines on server start."""
     global pipeline
 
@@ -84,11 +69,32 @@ async def startup():
     logger.info("Pipeline ready.")
     logger.info("=" * 50)
 
+    yield  # App runs here
+
+    # Shutdown
+    logger.info("vāk — shutting down")
+
+
+# ── App ──
+app = FastAPI(
+    title="vāk",
+    description="Voice-first thinking partner",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+# CORS — dynamic configuration from settings
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ── Health Check ──
 @app.get("/health")
 async def health():
-    keys = settings.validate_keys()
     engines = {}
     if pipeline:
         engines["stt"] = pipeline._stt.__class__.__name__
@@ -97,7 +103,6 @@ async def health():
     return HealthResponse(
         status="ok" if pipeline else "not_ready",
         engines=engines,
-        keys=keys,
     )
 
 

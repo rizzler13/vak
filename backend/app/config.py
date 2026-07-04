@@ -44,6 +44,16 @@ class Settings(BaseSettings):
     # --- Server ---
     host: str = "0.0.0.0"
     port: int = 8000
+    allowed_origins: list[str] = [
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://d3bxrzk8mr4zou.cloudfront.net",
+    ]
+
+    # --- Environment ---
+    environment: str = "development"
 
     # --- AWS S3 ---
     aws_access_key_id: str = ""
@@ -60,7 +70,7 @@ class Settings(BaseSettings):
             "cartesia": bool(self.cartesia_api_key),
             "cerebras": bool(self.cerebras_api_key),
             "openrouter": bool(self.openrouter_api_key),
-            "aws": bool(self.aws_access_key_id and self.aws_secret_access_key),
+            "aws": bool((self.aws_access_key_id and self.aws_secret_access_key) or (self.environment == "production" and self.aws_s3_bucket)),
         }
 
 
