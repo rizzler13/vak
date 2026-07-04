@@ -49,7 +49,8 @@ class Settings(BaseSettings):
         "http://127.0.0.1:8000",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://d3bxrzk8mr4zou.cloudfront.net",
+        "https://d3f5ad0ivrina5.cloudfront.net",
+        "http://vak-frontend-510490942735.s3-website-us-east-1.amazonaws.com",
     ]
 
     # --- Environment ---
