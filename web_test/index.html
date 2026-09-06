@@ -618,22 +618,98 @@
             </div>
         </div>
 
-        <!-- Column 3: Transcripts -->
-        <div id="chat-transcript-panel" class="w-full md:w-[450px] flex-shrink-0 flex flex-col gap-6 h-[500px] md:h-[600px] overflow-hidden">
+        <!-- Column 3: Transcripts & Agentic Action Deck -->
+        <div id="chat-transcript-panel" class="w-full md:w-[480px] flex-shrink-0 flex flex-col gap-6 h-[500px] md:h-[600px] overflow-hidden">
             <!-- Transcript Window -->
-            <div class="flex-grow exact-card p-6 flex flex-col relative overflow-hidden bg-black/90 h-full">
-                <!-- Header -->
-                <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4 flex-shrink-0">
-                    <span class="font-label-mono-xs text-slate-gray uppercase tracking-wider text-[10px]">// SESSION DIALOGUE</span>
+            <div class="flex-grow exact-card p-5 flex flex-col relative overflow-hidden bg-black/90 h-full">
+                <!-- Header with Tabs -->
+                <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-3 flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <button id="tab-dialogue-btn" class="font-label-mono-xs uppercase tracking-wider text-[10px] px-2 py-1 text-white border-b-2 border-electric-blue transition-colors cursor-pointer flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[12px]">chat</span>
+                            <span>DIALOGUE</span>
+                        </button>
+                        <button id="tab-action-btn" class="font-label-mono-xs uppercase tracking-wider text-[10px] px-2 py-1 text-white/50 hover:text-white border-b-2 border-transparent transition-colors flex items-center gap-1.5 cursor-pointer">
+                            <span class="w-1.5 h-1.5 rounded-full bg-electric-blue animate-pulse"></span>
+                            <span>ACTION DECK</span>
+                            <span id="action-task-count" class="px-1.5 py-0.5 bg-electric-blue/20 text-electric-blue rounded text-[8px] font-semibold hidden">0</span>
+                        </button>
+                    </div>
+                    <button id="export-plan-btn" class="font-label-mono-xs text-[9px] text-white/40 hover:text-electric-blue flex items-center gap-1 transition-colors cursor-pointer hidden" title="Export Markdown Work Plan">
+                        <span class="material-symbols-outlined text-[12px]">content_copy</span>
+                        <span id="export-btn-label">EXPORT PLAN</span>
+                    </button>
                 </div>
                 
+                <!-- Dialogue View -->
                 <div id="voice-transcript-area" class="flex-grow overflow-y-auto pr-2 flex flex-col gap-4 font-body-md text-sm md:text-[15px] pb-4">
                     <div class="text-white/40 font-label-mono-xs uppercase tracking-widest text-center mt-8 select-none">// START SESSION TO ENGAGE DIALOGUE</div>
                 </div>
 
-                <div class="border-t border-white/10 pt-4 flex gap-3 flex-shrink-0">
-                    <input type="text" id="voice-text-input" placeholder="Type message to direct conversation..." class="flex-grow bg-black border border-white/10 text-white placeholder-white/30 text-xs px-4 py-3 focus:outline-none focus:border-electric-blue transition-colors focus:ring-0 rounded-none font-label-mono-sm" />
-                    <button id="voice-text-send-btn" class="bg-electric-blue border border-electric-blue hover:bg-transparent hover:text-electric-blue text-white px-5 py-3 transition-colors font-label-mono-sm text-xs uppercase flex items-center justify-center cursor-pointer"><span class="material-symbols-outlined text-sm">arrow_forward</span></button>
+                <!-- Agentic Action Deck View -->
+                <div id="action-deck-area" class="flex-grow overflow-y-auto pr-2 flex-col gap-3 font-label-mono-xs text-xs pb-4 hidden">
+                    <div id="action-deck-empty" class="text-white/40 font-label-mono-xs uppercase tracking-widest text-center mt-12 select-none">
+                        <div>// NO ACTIVE WORK ORDER</div>
+                        <p class="text-[9px] text-white/30 mt-2 normal-case tracking-normal">Discuss an architecture, task, or problem — Vāk will automatically synthesize actionable deliverables, checklists, and commands.</p>
+                    </div>
+                    <div id="action-deck-content" class="space-y-4 hidden">
+                        <!-- Action Plan Title & Objective -->
+                        <div class="border border-electric-blue/30 bg-electric-blue/5 p-3">
+                            <div class="flex items-center justify-between">
+                                <span class="font-label-mono-xs text-[8px] uppercase tracking-widest text-electric-blue font-bold">// WORK_ORDER</span>
+                                <span id="action-plan-badge" class="px-1.5 py-0.5 bg-electric-blue/20 text-electric-blue text-[8px] uppercase">READY</span>
+                            </div>
+                            <h4 id="action-plan-title" class="font-stat-lg text-sm text-white uppercase tracking-wider mt-1">PLAN TITLE</h4>
+                            <p id="action-plan-objective" class="text-[10px] text-white/70 mt-1 leading-relaxed">Objective description</p>
+                        </div>
+
+                        <!-- Task Checklist -->
+                        <div class="border border-white/10 p-3 bg-black/40">
+                            <div class="text-slate-gray uppercase text-[9px] tracking-wider mb-2 flex justify-between items-center">
+                                <span>// EXECUTION CHECKLIST</span>
+                                <span id="action-task-progress" class="text-white/50 text-[8px]">0/0 DONE</span>
+                            </div>
+                            <div id="action-task-list" class="space-y-2">
+                                <!-- Tasks injected here -->
+                            </div>
+                        </div>
+
+                        <!-- CLI / Shell Commands -->
+                        <div id="action-commands-container" class="border border-white/10 p-3 bg-black/40 hidden">
+                            <div class="text-slate-gray uppercase text-[9px] tracking-wider mb-2">// TERMINAL COMMANDS</div>
+                            <div id="action-commands-list" class="space-y-1.5">
+                                <!-- Commands injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Code Blueprint -->
+                        <div id="action-code-container" class="border border-white/10 p-3 bg-black/40 hidden">
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span id="action-code-filename" class="text-slate-gray uppercase text-[9px] tracking-wider">// CODE BLUEPRINT</span>
+                                <button id="copy-code-btn" class="text-electric-blue hover:underline text-[9px] cursor-pointer">COPY CODE</button>
+                            </div>
+                            <pre id="action-code-block" class="bg-black border border-white/5 p-2.5 text-[10px] text-green-400 font-mono overflow-x-auto max-h-40 select-all"></pre>
+                        </div>
+
+                        <!-- Architecture Notes -->
+                        <div id="action-notes-container" class="border-l-2 border-electric-blue/70 pl-3 py-1 text-white/60 text-[10px] leading-relaxed hidden">
+                            <span id="action-notes-text"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Action Chips -->
+                <div class="flex items-center gap-1.5 overflow-x-auto py-1.5 border-t border-white/5 flex-shrink-0 no-scrollbar">
+                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Design the high-level architecture and component layout for this.">⚡ Architecture</button>
+                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Break this down into an actionable step-by-step task checklist.">📋 Task Checklist</button>
+                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Generate the terminal commands and setup scripts for this.">💻 CLI Script</button>
+                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Analyze the root cause and isolate the failure point.">🔍 Root Cause</button>
+                </div>
+
+                <!-- Input Row -->
+                <div class="border-t border-white/10 pt-3 flex gap-2 flex-shrink-0">
+                    <input type="text" id="voice-text-input" placeholder="Type prompt or task to direct execution..." class="flex-grow bg-black border border-white/10 text-white placeholder-white/30 text-xs px-3 py-2.5 focus:outline-none focus:border-electric-blue transition-colors focus:ring-0 rounded-none font-label-mono-sm" />
+                    <button id="voice-text-send-btn" class="bg-electric-blue border border-electric-blue hover:bg-transparent hover:text-electric-blue text-white px-4 py-2.5 transition-colors font-label-mono-sm text-xs uppercase flex items-center justify-center cursor-pointer"><span class="material-symbols-outlined text-sm">arrow_forward</span></button>
                 </div>
             </div>
         </div>

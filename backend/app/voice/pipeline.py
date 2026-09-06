@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 
 from app.llm.llm_router import LLMRouter
 from app.llm.prompts import build_messages, get_opening_prompt
+from app.llm.agent_tools import AgentActionExtractor
 from app.voice.stt import STTEngine
 from app.voice.tts import TTSEngine
 from app.storage.s3 import S3HistoryStore
@@ -60,6 +61,7 @@ class SessionState:
     history: list[dict] = field(default_factory=list)
     is_new_session: bool = True
     insights: dict = field(default_factory=dict)
+    action_plan: dict | None = None
     title: str = ""
 
     def add_exchange(self, user_text: str, assistant_text: str):
@@ -92,6 +94,7 @@ class VoicePipeline:
         self._stt = stt_engine
         self._tts = tts_engine
         self._llm = llm_client
+        self._agent = AgentActionExtractor(llm_router=self._llm)
         self._sessions: dict[str, SessionState] = {}
         self._storage = S3HistoryStore()
 
@@ -156,6 +159,19 @@ class VoicePipeline:
                     await on_meta({"type": "insights", "data": new_insights})
         except Exception as e:
             logger.error(f"Failed to update insights in background: {e}", exc_info=True)
+
+    async def _update_action_plan_background(
+        self, user_text: str, assistant_text: str, history: list[dict], session: SessionState, on_meta=None
+    ):
+        """Asynchronously analyze conversation, generate actionable plan/tasks, and stream to client."""
+        try:
+            plan = await self._agent.extract_action_plan(user_text, assistant_text, history)
+            if plan:
+                session.action_plan = plan
+                if on_meta:
+                    await on_meta({"type": "action_plan", "data": plan})
+        except Exception as e:
+            logger.error(f"Failed to update action plan in background: {e}", exc_info=True)
 
     async def process(
         self, audio_bytes: bytes, session_id: str = "default", on_meta=None
@@ -238,6 +254,10 @@ class VoicePipeline:
         task = asyncio.create_task(self._update_insights_background("default", session.history, session, on_meta))
         task.add_done_callback(_bg_task_done)
 
+        # Trigger background synthesis of agentic action plan
+        task = asyncio.create_task(self._update_action_plan_background(user_text, full_response.strip(), session.history, session, on_meta))
+        task.add_done_callback(_bg_task_done)
+
         # ── Log metrics ──
         metrics.log()
         if on_meta:
@@ -311,6 +331,10 @@ class VoicePipeline:
         
         # Trigger background synthesis of insights
         task = asyncio.create_task(self._update_insights_background("default", session.history, session, on_meta))
+        task.add_done_callback(_bg_task_done)
+
+        # Trigger background synthesis of agentic action plan
+        task = asyncio.create_task(self._update_action_plan_background(user_text, full_response.strip(), session.history, session, on_meta))
         task.add_done_callback(_bg_task_done)
         
         metrics.log()

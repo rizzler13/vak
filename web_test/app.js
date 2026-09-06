@@ -69,6 +69,32 @@ const metricStt = document.getElementById('metric-stt');
 const metricLlm = document.getElementById('metric-llm');
 const metricTts = document.getElementById('metric-tts');
 
+// Action Deck DOM Bindings
+const tabDialogueBtn = document.getElementById('tab-dialogue-btn');
+const tabActionBtn = document.getElementById('tab-action-btn');
+const actionDeckArea = document.getElementById('action-deck-area');
+const actionDeckEmpty = document.getElementById('action-deck-empty');
+const actionDeckContent = document.getElementById('action-deck-content');
+const actionTaskCount = document.getElementById('action-task-count');
+const actionPlanBadge = document.getElementById('action-plan-badge');
+const actionPlanTitle = document.getElementById('action-plan-title');
+const actionPlanObjective = document.getElementById('action-plan-objective');
+const actionTaskList = document.getElementById('action-task-list');
+const actionTaskProgress = document.getElementById('action-task-progress');
+const actionCommandsContainer = document.getElementById('action-commands-container');
+const actionCommandsList = document.getElementById('action-commands-list');
+const actionCodeContainer = document.getElementById('action-code-container');
+const actionCodeBlock = document.getElementById('action-code-block');
+const actionCodeFilename = document.getElementById('action-code-filename');
+const actionNotesContainer = document.getElementById('action-notes-container');
+const actionNotesText = document.getElementById('action-notes-text');
+const exportPlanBtn = document.getElementById('export-plan-btn');
+const exportBtnLabel = document.getElementById('export-btn-label');
+const copyCodeBtn = document.getElementById('copy-code-btn');
+
+let currentActionPlan = null;
+let activeTab = 'dialogue'; // 'dialogue' | 'action'
+
 // ── SPA View Switcher ──
 function switchView(viewId) {
     const views = ['home', 'about', 'chat'];
@@ -198,6 +224,9 @@ function connectWS() {
         if (msg.type === 'session_init') {
             // Load user insights
             renderInsights(msg.insights);
+            if (msg.action_plan) {
+                renderActionPlan(msg.action_plan);
+            }
 
             // Clean up and load transcripts
             transcriptArea.innerHTML = '';
@@ -228,6 +257,10 @@ function connectWS() {
             // Background update received from insights analyzer
             renderInsights(msg.data);
             flashInsightsSnippet();
+        }
+        else if (msg.type === 'action_plan') {
+            // Structured Agentic Action Plan received
+            renderActionPlan(msg.data);
         }
         else if (msg.type === 'audio') {
             // Decode base64 audio and queue for playback
@@ -600,6 +633,191 @@ function flashInsightsSnippet() {
         insightsSnippet.classList.remove('border-electric-blue', 'shadow-[0_0_15px_rgba(46,91,255,0.2)]');
     }, 1500);
 }
+
+// ── Agentic Action Deck Logic ──
+function switchTab(tab) {
+    activeTab = tab;
+    if (tab === 'dialogue') {
+        if (transcriptArea) transcriptArea.classList.remove('hidden');
+        if (actionDeckArea) actionDeckArea.classList.add('hidden');
+        if (tabDialogueBtn) tabDialogueBtn.className = 'font-label-mono-xs uppercase tracking-wider text-[10px] px-2 py-1 text-white border-b-2 border-electric-blue transition-colors cursor-pointer flex items-center gap-1.5';
+        if (tabActionBtn) tabActionBtn.className = 'font-label-mono-xs uppercase tracking-wider text-[10px] px-2 py-1 text-white/50 hover:text-white border-b-2 border-transparent transition-colors flex items-center gap-1.5 cursor-pointer';
+    } else {
+        if (transcriptArea) transcriptArea.classList.add('hidden');
+        if (actionDeckArea) actionDeckArea.classList.remove('hidden');
+        if (tabDialogueBtn) tabDialogueBtn.className = 'font-label-mono-xs uppercase tracking-wider text-[10px] px-2 py-1 text-white/50 hover:text-white border-b-2 border-transparent transition-colors flex items-center gap-1.5 cursor-pointer';
+        if (tabActionBtn) tabActionBtn.className = 'font-label-mono-xs uppercase tracking-wider text-[10px] px-2 py-1 text-white border-b-2 border-electric-blue transition-colors flex items-center gap-1.5 cursor-pointer';
+    }
+}
+if (tabDialogueBtn) tabDialogueBtn.addEventListener('click', () => switchTab('dialogue'));
+if (tabActionBtn) tabActionBtn.addEventListener('click', () => switchTab('action'));
+
+function renderActionPlan(plan) {
+    if (!plan || !plan.tasks || plan.tasks.length === 0) return;
+    currentActionPlan = plan;
+
+    if (actionDeckEmpty) actionDeckEmpty.classList.add('hidden');
+    if (actionDeckContent) actionDeckContent.classList.remove('hidden');
+
+    if (actionPlanTitle) actionPlanTitle.textContent = plan.title || 'WORK ORDER';
+    if (actionPlanObjective) actionPlanObjective.textContent = plan.objective || 'Active execution tasks';
+
+    // Render tasks
+    if (actionTaskList) {
+        actionTaskList.innerHTML = plan.tasks.map((task, idx) => {
+            const isDone = task.status === 'done' || task.done;
+            const priorityClass = task.priority === 'high' ? 'text-red-400 border-red-500/30' : (task.priority === 'medium' ? 'text-yellow-400 border-yellow-500/30' : 'text-white/40 border-white/20');
+            return `
+                <div class="flex items-start gap-2.5 p-2 bg-black/60 border border-white/5 hover:border-white/20 transition-all group">
+                    <input type="checkbox" id="task-chk-${idx}" class="mt-0.5 accent-electric-blue cursor-pointer rounded-none" ${isDone ? 'checked' : ''} onchange="toggleTaskDone(${idx})">
+                    <label for="task-chk-${idx}" class="flex-grow cursor-pointer ${isDone ? 'line-through text-white/40' : 'text-white/90'} text-[11px] leading-snug">
+                        ${task.text}
+                    </label>
+                    <span class="px-1 py-0.2 border text-[7px] uppercase tracking-wider ${priorityClass}">${task.priority || 'TASK'}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    updateTaskProgress();
+
+    // Render commands
+    if (actionCommandsContainer && actionCommandsList) {
+        if (plan.commands && plan.commands.length > 0) {
+            actionCommandsContainer.classList.remove('hidden');
+            actionCommandsList.innerHTML = plan.commands.map((cmd) => `
+                <div class="flex items-center justify-between gap-2 p-2 bg-black border border-white/10 font-mono text-[10px]">
+                    <span class="text-green-400 truncate select-all">$ ${cmd}</span>
+                    <button class="px-2 py-0.5 border border-white/20 hover:border-electric-blue text-white/70 hover:text-white text-[8px] uppercase tracking-wider transition-colors cursor-pointer flex-shrink-0" onclick="copyCommand('${cmd.replace(/'/g, "\\'")}', this)">COPY</button>
+                </div>
+            `).join('');
+        } else {
+            actionCommandsContainer.classList.add('hidden');
+        }
+    }
+
+    // Render code
+    if (actionCodeContainer && actionCodeBlock) {
+        if (plan.code_snippet && plan.code_snippet.code) {
+            actionCodeContainer.classList.remove('hidden');
+            actionCodeBlock.textContent = plan.code_snippet.code;
+            if (actionCodeFilename) {
+                actionCodeFilename.textContent = `// ${plan.code_snippet.filename || 'CODE BLUEPRINT'}`;
+            }
+        } else {
+            actionCodeContainer.classList.add('hidden');
+        }
+    }
+
+    // Render notes
+    if (actionNotesContainer && actionNotesText) {
+        if (plan.notes) {
+            actionNotesContainer.classList.remove('hidden');
+            actionNotesText.textContent = plan.notes;
+        } else {
+            actionNotesContainer.classList.add('hidden');
+        }
+    }
+
+    // Update count badge on tab
+    if (actionTaskCount) {
+        actionTaskCount.textContent = plan.tasks.length;
+        actionTaskCount.classList.remove('hidden');
+    }
+
+    if (exportPlanBtn) exportPlanBtn.classList.remove('hidden');
+
+    // Flash tab badge to signal new action items
+    if (tabActionBtn) {
+        tabActionBtn.classList.add('text-electric-blue', 'font-bold');
+        setTimeout(() => {
+            if (activeTab !== 'action') {
+                tabActionBtn.classList.remove('text-electric-blue', 'font-bold');
+            }
+        }, 2500);
+    }
+}
+
+function updateTaskProgress() {
+    if (!currentActionPlan || !currentActionPlan.tasks) return;
+    const total = currentActionPlan.tasks.length;
+    const done = currentActionPlan.tasks.filter(t => t.status === 'done' || t.done).length;
+    if (actionTaskProgress) actionTaskProgress.textContent = `${done}/${total} DONE`;
+}
+
+function toggleTaskDone(idx) {
+    if (!currentActionPlan || !currentActionPlan.tasks[idx]) return;
+    const task = currentActionPlan.tasks[idx];
+    const isDone = task.status === 'done' || task.done;
+    task.status = isDone ? 'pending' : 'done';
+    task.done = !isDone;
+    renderActionPlan(currentActionPlan);
+}
+
+function copyCommand(cmd, btn) {
+    navigator.clipboard.writeText(cmd).then(() => {
+        const original = btn.textContent;
+        btn.textContent = 'COPIED!';
+        btn.classList.add('border-green-400', 'text-green-400');
+        setTimeout(() => {
+            btn.textContent = original;
+            btn.classList.remove('border-green-400', 'text-green-400');
+        }, 1500);
+    });
+}
+window.copyCommand = copyCommand;
+window.toggleTaskDone = toggleTaskDone;
+
+if (exportPlanBtn) {
+    exportPlanBtn.addEventListener('click', () => {
+        if (!currentActionPlan) return;
+        let md = `# Work Order: ${currentActionPlan.title || 'Plan'}\n\n`;
+        md += `> **Objective**: ${currentActionPlan.objective || ''}\n\n`;
+        md += `## Tasks\n`;
+        (currentActionPlan.tasks || []).forEach(t => {
+            const check = (t.status === 'done' || t.done) ? '[x]' : '[ ]';
+            md += `- ${check} [${(t.priority || 'task').toUpperCase()}] ${t.text}\n`;
+        });
+        if (currentActionPlan.commands && currentActionPlan.commands.length > 0) {
+            md += `\n## Commands\n\`\`\`bash\n` + currentActionPlan.commands.join('\n') + `\n\`\`\`\n`;
+        }
+        if (currentActionPlan.code_snippet && currentActionPlan.code_snippet.code) {
+            md += `\n## Code Blueprint (${currentActionPlan.code_snippet.filename || ''})\n\`\`\`${currentActionPlan.code_snippet.language || ''}\n${currentActionPlan.code_snippet.code}\n\`\`\`\n`;
+        }
+        if (currentActionPlan.notes) {
+            md += `\n## Architecture Notes\n${currentActionPlan.notes}\n`;
+        }
+        navigator.clipboard.writeText(md).then(() => {
+            if (exportBtnLabel) {
+                exportBtnLabel.textContent = 'COPIED TO CLIPBOARD!';
+                setTimeout(() => exportBtnLabel.textContent = 'EXPORT PLAN', 2000);
+            }
+        });
+    });
+}
+
+if (copyCodeBtn) {
+    copyCodeBtn.addEventListener('click', () => {
+        if (actionCodeBlock && actionCodeBlock.textContent) {
+            navigator.clipboard.writeText(actionCodeBlock.textContent).then(() => {
+                copyCodeBtn.textContent = 'COPIED!';
+                setTimeout(() => copyCodeBtn.textContent = 'COPY CODE', 1500);
+            });
+        }
+    });
+}
+
+// Quick action chips
+document.querySelectorAll('.quick-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const prompt = btn.getAttribute('data-prompt');
+        if (prompt) {
+            textInput.value = prompt;
+            sendText(prompt);
+        }
+    });
+});
+
 
 async function fetchHealth() {
     try {

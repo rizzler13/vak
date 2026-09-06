@@ -134,7 +134,7 @@ Return ONLY a valid JSON object matching this schema:
 {{
   "recurring_avoidances": ["list of specific tasks, emotions, or topics the user actively avoids or deflects"],
   "emotional_triggers": ["specific situations, thoughts, or feelings that cause anxiety, stagnation, or defense mechanisms"],
-  "philosophy_alignment": "A single sentence explaining what type of energy they need right now (e.g. David Goggins radical accountability, Stoic presence, or Taoist stillness)",
+  "operational_focus": "A single sentence explaining their core operational focus and architectural posture right now",
   "key_people": {{
     "name": "brief description of relation and context"
   }}

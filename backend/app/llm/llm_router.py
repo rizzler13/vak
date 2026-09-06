@@ -60,11 +60,21 @@ class LLMRouter:
     async def stream_response(self, messages: list[dict]) -> AsyncGenerator[str, None]:
         """
         Stream response tokens. Routes through:
-        1. Cerebras (Llama 3.1 8B for lowest voice latency)
-        2. OpenRouter (Gemini 2.5 Flash / fallback)
-        3. Groq (Llama 3.3 70B versatile fallback)
+        1. Groq (qwen/qwen3.8-27b - ultra-low voice latency ~150ms)
+        2. Cerebras (fallback)
+        3. OpenRouter (fallback)
         """
-        # 1. Cerebras
+        # 1. Groq
+        if self._groq:
+            try:
+                logger.info("Routing completion request to Groq...")
+                async for token in self._groq.stream_response(messages):
+                    yield token
+                return
+            except Exception as e:
+                logger.warning(f"Groq call failed: {e}. Falling back...")
+
+        # 2. Cerebras
         if settings.cerebras_api_key:
             try:
                 logger.info("Routing completion request to Cerebras...")
@@ -91,7 +101,7 @@ class LLMRouter:
             except Exception as e:
                 logger.warning(f"Cerebras call failed: {e}. Falling back...")
 
-        # 2. OpenRouter
+        # 3. OpenRouter
         if settings.openrouter_api_key:
             try:
                 logger.info("Routing completion request to OpenRouter...")
@@ -120,13 +130,7 @@ class LLMRouter:
             except Exception as e:
                 logger.warning(f"OpenRouter call failed: {e}. Falling back...")
 
-        # 3. Groq
-        if self._groq:
-            logger.info("Routing completion request to Groq...")
-            async for token in self._groq.stream_response(messages):
-                yield token
-        else:
-            raise RuntimeError("No LLM client available to handle completions.")
+        raise RuntimeError("No LLM client available to handle completions.")
 
     async def stream_sentences(self, messages: list[dict]) -> AsyncGenerator[str, None]:
         """Stream complete sentences for voice loop pipelines."""
@@ -187,7 +191,15 @@ Respond with the JSON block and nothing else. Do not wrap in markdown code block
 """
         messages = [{"role": "user", "content": synthesis_prompt}]
 
-        # 1. OpenRouter
+        # 1. Groq (Primary & fast)
+        if self._groq:
+            try:
+                logger.info("Routing insights generation to Groq...")
+                return await self._groq.generate_insights(history, current_insights)
+            except Exception as e:
+                logger.warning(f"Groq insights call failed: {e}. Falling back...")
+
+        # 2. OpenRouter (Fallback)
         if settings.openrouter_api_key:
             try:
                 logger.info("Routing insights generation to OpenRouter...")
@@ -212,7 +224,7 @@ Respond with the JSON block and nothing else. Do not wrap in markdown code block
             except Exception as e:
                 logger.warning(f"OpenRouter insights call failed: {e}. Falling back...")
 
-        # 2. Cerebras
+        # 3. Cerebras (Fallback)
         if settings.cerebras_api_key:
             try:
                 logger.info("Routing insights generation to Cerebras...")
@@ -234,11 +246,6 @@ Respond with the JSON block and nothing else. Do not wrap in markdown code block
                         return self._clean_json(content)
             except Exception as e:
                 logger.warning(f"Cerebras insights call failed: {e}. Falling back...")
-
-        # 3. Groq
-        if self._groq:
-            logger.info("Routing insights generation to Groq...")
-            return await self._groq.generate_insights(history, current_insights)
 
         return current_insights
 
@@ -269,7 +276,22 @@ Respond ONLY with the 2-3 word title. No quotes, no prefix, no markdown.
 """
         messages = [{"role": "user", "content": prompt}]
 
-        # 1. OpenRouter
+        # 1. Groq (Primary & fast)
+        if self._groq:
+            try:
+                logger.info("Routing title generation to Groq...")
+                response = await self._groq._client.chat.completions.create(
+                    model=self._groq._model,
+                    messages=messages,
+                    temperature=0.2,
+                    max_tokens=16
+                )
+                content = response.choices[0].message.content.strip()
+                return content.replace('"', '').replace("'", "")
+            except Exception as e:
+                logger.warning(f"Groq title call failed: {e}. Falling back...")
+
+        # 2. OpenRouter (Fallback)
         if settings.openrouter_api_key:
             try:
                 logger.info("Routing title generation to OpenRouter...")
@@ -294,7 +316,7 @@ Respond ONLY with the 2-3 word title. No quotes, no prefix, no markdown.
             except Exception as e:
                 logger.warning(f"OpenRouter title call failed: {e}. Falling back...")
 
-        # 2. Cerebras
+        # 3. Cerebras (Fallback)
         if settings.cerebras_api_key:
             try:
                 logger.info("Routing title generation to Cerebras...")
@@ -316,21 +338,6 @@ Respond ONLY with the 2-3 word title. No quotes, no prefix, no markdown.
                         return content.replace('"', '').replace("'", "")
             except Exception as e:
                 logger.warning(f"Cerebras title call failed: {e}. Falling back...")
-
-        # 3. Groq
-        if self._groq:
-            try:
-                logger.info("Routing title generation to Groq...")
-                response = await self._groq._client.chat.completions.create(
-                    model=self._groq._model,
-                    messages=messages,
-                    temperature=0.2,
-                    max_tokens=16
-                )
-                content = response.choices[0].message.content.strip()
-                return content.replace('"', '').replace("'", "")
-            except Exception as e:
-                logger.error(f"Groq title call failed: {e}")
 
         # Static fallback of coolnames
         from datetime import datetime
@@ -458,7 +465,22 @@ Respond with the JSON block and nothing else. Do not wrap in markdown code block
             ]
         }
 
-        # 1. OpenRouter
+        # 1. Groq (Primary & fast)
+        if self._groq:
+            try:
+                logger.info("Routing report generation to Groq...")
+                response = await self._groq._client.chat.completions.create(
+                    model=self._groq._model,
+                    messages=messages,
+                    temperature=0.2,
+                    max_tokens=1024
+                )
+                content = response.choices[0].message.content.strip()
+                return self._clean_json(content)
+            except Exception as e:
+                logger.warning(f"Groq report generation failed: {e}. Falling back...")
+
+        # 2. OpenRouter (Fallback)
         if settings.openrouter_api_key:
             try:
                 logger.info("Routing report generation to OpenRouter...")
@@ -483,7 +505,7 @@ Respond with the JSON block and nothing else. Do not wrap in markdown code block
             except Exception as e:
                 logger.warning(f"OpenRouter report generation failed: {e}. Falling back...")
 
-        # 2. Cerebras
+        # 3. Cerebras (Fallback)
         if settings.cerebras_api_key:
             try:
                 logger.info("Routing report generation to Cerebras...")
@@ -505,21 +527,6 @@ Respond with the JSON block and nothing else. Do not wrap in markdown code block
                         return self._clean_json(content)
             except Exception as e:
                 logger.warning(f"Cerebras report generation failed: {e}. Falling back...")
-
-        # 3. Groq
-        if self._groq:
-            try:
-                logger.info("Routing report generation to Groq...")
-                response = await self._groq._client.chat.completions.create(
-                    model=self._groq._model,
-                    messages=messages,
-                    temperature=0.2,
-                    max_tokens=1024
-                )
-                content = response.choices[0].message.content.strip()
-                return self._clean_json(content)
-            except Exception as e:
-                logger.error(f"Groq report generation failed: {e}")
 
         return default_report
 

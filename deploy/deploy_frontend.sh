@@ -37,8 +37,8 @@ aws s3 sync "$FRONTEND_DIR" "s3://$BUCKET_NAME" \
 # HTML files — short cache for faster updates
 aws s3 sync "$FRONTEND_DIR" "s3://$BUCKET_NAME" \
     --cache-control "public, max-age=300" \
-    --include "*.html" \
     --exclude "*" \
+    --include "*.html"
 
 echo ">>> Frontend synced to S3."
 

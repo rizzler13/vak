@@ -2,12 +2,29 @@ import json
 import subprocess
 import os
 
-DIST_ID = "E2EXXR7T58GEQX"
+import sys
+from pathlib import Path
+
+# Target distribution: E1NF7Q51VR8MI (d3bxrzk8mr4zou.cloudfront.net) or E2EXXR7T58GEQX (d3f5ad0ivrina5.cloudfront.net)
+DEFAULT_DIST_ID = "E1NF7Q51VR8MI"
+DIST_ID = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_DIST_ID
 EC2_IP = "ec2-52-86-214-242.compute-1.amazonaws.com"
 
 def run_cmd(cmd):
-    # Retrieve env vars for AWS credentials
+    # Retrieve env vars for AWS credentials from environment or .env
     env = os.environ.copy()
+    env_file = Path(__file__).resolve().parent.parent / ".env"
+    if env_file.exists():
+        with open(env_file, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    v = v.strip().strip("'\"")
+                    if k.startswith("AWS_") and k not in env:
+                        env[k] = v
+
     res = subprocess.run(cmd, shell=True, capture_output=True, text=True, env=env)
     if res.returncode != 0:
         raise RuntimeError(f"Command failed: {cmd}\nError: {res.stderr}")

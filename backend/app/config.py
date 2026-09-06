@@ -37,8 +37,8 @@ class Settings(BaseSettings):
     cartesia_model_id: str = "sonic"
 
     # --- LLM ---
-    groq_model: str = "llama-3.3-70b-versatile"
-    cerebras_model: str = "llama3.1-8b"
+    groq_model: str = "qwen/qwen3.8-27b"
+    cerebras_model: str = "qwen-3.8-27b"
     openrouter_model: str = "google/gemini-2.5-flash"
 
     # --- Server ---
@@ -49,6 +49,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:8000",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "https://d3bxrzk8mr4zou.cloudfront.net",
         "https://d3f5ad0ivrina5.cloudfront.net",
         "http://vak-frontend-510490942735.s3-website-us-east-1.amazonaws.com",
     ]

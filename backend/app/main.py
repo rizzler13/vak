@@ -192,7 +192,8 @@ async def voice_websocket(ws: WebSocket, session_id: str | None = None):
         await ws.send_json({
             "type": "session_init",
             "history": session.history,
-            "insights": session.insights
+            "insights": session.insights,
+            "action_plan": session.action_plan,
         })
 
         # Define on_meta helper to stream metadata to WebSocket
