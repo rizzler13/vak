@@ -2569,46 +2569,7 @@ function openReport() {
 }
 window.openReport = openReport;
 
-// ── Interactive Capability Demo Loaders ──
-window.loadDemoDiagram = function() {
-    renderActionPlan({
-        title: "Microservice Topology",
-        objective: "Demonstrate live Mermaid architecture visualizer inside the Action Deck",
-        tasks: [
-            { id: "t1", text: "Client establishes WebSocket to FastAPI voice gateway", priority: "high", status: "pending" },
-            { id: "t2", text: "FastAPI routes inference to Groq / Cerebras", priority: "medium", status: "pending" },
-            { id: "t3", text: "Session state and metrics persisted to AWS S3 bucket", priority: "normal", status: "pending" }
-        ],
-        commands: ["curl -I http://localhost:8000/health"],
-        code_snippet: {
-            filename: "docker-compose.yml",
-            language: "yaml",
-            code: "version: '3.8'\nservices:\n  vak-gateway:\n    build: ./backend\n    ports:\n      - '8000:8000'\n    environment:\n      - GROQ_API_KEY=${GROQ_API_KEY}\n      - AWS_S3_BUCKET=vak-session-history"
-        },
-        diagram: "graph TD\n  Client[Browser Console] -->|WebSocket /ws/voice| Gateway[FastAPI Server]\n  Gateway -->|Streaming LLM| Groq[Groq / Cerebras API]\n  Gateway -->|Speech Synthesis| TTS[Kokoro / Cartesia]\n  Gateway -->|Async Archival| S3[(AWS S3 History)]",
-        notes: "Real-time Mermaid diagram rendered client-side on browser CPU at 0 token cost."
-    });
-    switchTab('action');
-};
 
-window.loadDemoApiTest = function() {
-    renderActionPlan({
-        title: "API Endpoint Inspection",
-        objective: "Test backend health status and response latency via in-browser HTTP client",
-        tasks: [
-            { id: "t1", text: "Click 'TEST' below to execute browser fetch() request", priority: "high", status: "pending" },
-            { id: "t2", text: "Inspect status code, latency (ms), and response JSON", priority: "medium", status: "pending" }
-        ],
-        commands: ["curl http://localhost:8000/health"],
-        api_endpoint: {
-            method: "GET",
-            url: window.location.origin ? `${window.location.origin}/health` : "http://localhost:8000/health",
-            body: null
-        },
-        notes: "In-browser API tester verifies endpoints natively without needing Postman or terminal curl."
-    });
-    switchTab('action');
-};
 
 // Initialize Vault deliverables and WebSocket connection if in Chat view
 loadVault();
