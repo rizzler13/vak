@@ -1272,7 +1272,7 @@ function appendDeliverableCardToChat(plan) {
     }
 
     const card = document.createElement('div');
-    card.className = 'mt-3 p-3 bg-electric-blue/10 border border-electric-blue/40 flex items-center justify-between gap-3 animate-fade-in select-none';
+    card.className = 'mt-3 p-3 bg-electric-blue/10 border border-electric-blue/40 flex items-center justify-between gap-3 animate-fade-in';
     card.innerHTML = `
         <div class="flex items-center gap-2.5 min-w-0">
             <div class="w-8 h-8 rounded bg-electric-blue/20 border border-electric-blue/50 flex items-center justify-center flex-shrink-0">
@@ -1280,7 +1280,7 @@ function appendDeliverableCardToChat(plan) {
             </div>
             <div class="min-w-0">
                 <div class="flex items-center gap-1.5">
-                    <span class="text-[8px] uppercase tracking-wider text-green-400 font-mono font-bold">${typeName}</span>
+                    <span class="text-[8px] uppercase tracking-wider text-electric-blue font-mono font-bold">${typeName}</span>
                     <span class="text-[8px] text-white/40 font-mono">• STORED IN WORK DONE</span>
                 </div>
                 <div class="font-mono text-xs text-white font-bold truncate">${escapeHtml(title)}</div>
@@ -1346,7 +1346,7 @@ function renderVault() {
         vaultList.innerHTML = sessionDeliverables.map((item, idx) => {
             let tagsHtml = '';
             if (item.hasDiagram) tagsHtml += `<span class="px-1.5 py-0.5 bg-electric-blue/10 text-electric-blue border border-electric-blue/30 text-[8px] uppercase tracking-wider flex items-center gap-1"><span class="material-symbols-outlined text-[10px]">schema</span>DIAGRAM</span>`;
-            if (item.hasCode) tagsHtml += `<span class="px-1.5 py-0.5 bg-green-500/10 text-green-400 border border-green-500/30 text-[8px] uppercase tracking-wider flex items-center gap-1"><span class="material-symbols-outlined text-[10px]">code</span>BLUEPRINT</span>`;
+            if (item.hasCode) tagsHtml += `<span class="px-1.5 py-0.5 bg-electric-blue/10 text-electric-blue border border-electric-blue/30 text-[8px] uppercase tracking-wider flex items-center gap-1"><span class="material-symbols-outlined text-[10px]">code</span>BLUEPRINT</span>`;
             if (item.hasApi) tagsHtml += `<span class="px-1.5 py-0.5 bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 text-[8px] uppercase tracking-wider flex items-center gap-1"><span class="material-symbols-outlined text-[10px]">send</span>API TEST</span>`;
             tagsHtml += `<span class="px-1.5 py-0.5 bg-white/5 text-white/50 border border-white/10 text-[8px] uppercase tracking-wider">${item.tasksCount} TASKS</span>`;
 
@@ -1377,13 +1377,13 @@ function renderVault() {
                         </div>
                         <div class="flex items-center gap-2">
                             ${item.hasCode && item.plan.code_snippet ? `
-                                <button onclick="downloadFileBlob('${escapeQuote(item.plan.code_snippet.filename || 'code.txt')}', \`${escapeQuote(item.plan.code_snippet.code || '')}\`)" class="text-[8px] text-green-400 hover:underline uppercase font-mono cursor-pointer flex items-center gap-0.5">
+                                <button onclick="downloadFileBlob('${escapeQuote(item.plan.code_snippet.filename || 'code.txt')}', \`${escapeQuote(item.plan.code_snippet.code || '')}\`)" class="text-[8px] text-white/60 hover:text-white uppercase font-mono cursor-pointer flex items-center gap-0.5">
                                     <span class="material-symbols-outlined text-[10px]">download</span>
                                     <span>FILE</span>
                                 </button>
                             ` : ''}
                             ${item.hasDiagram && item.plan.diagram ? `
-                                <button onclick="navigator.clipboard.writeText(\`${escapeQuote(item.plan.diagram)}\`); alert('Mermaid diagram copied!');" class="text-[8px] text-electric-blue hover:underline uppercase font-mono cursor-pointer flex items-center gap-0.5">
+                                <button onclick="navigator.clipboard.writeText(\`${escapeQuote(item.plan.diagram)}\`); const s = this.querySelector('span:last-child'); if (s) { const orig = s.textContent; s.textContent = 'COPIED!'; setTimeout(() => s.textContent = orig, 1500); }" class="text-[8px] text-electric-blue hover:underline uppercase font-mono cursor-pointer flex items-center gap-0.5">
                                     <span class="material-symbols-outlined text-[10px]">content_copy</span>
                                     <span>MERMAID</span>
                                 </button>
@@ -1423,7 +1423,7 @@ function renderVault() {
                 overviewHtml += `
                     <div class="p-1.5 bg-black/60 border border-white/5 hover:border-white/20 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2 min-w-0">
-                            <span class="w-1.5 h-1.5 rounded-full ${item.hasDiagram ? 'bg-electric-blue' : 'bg-green-400'} flex-shrink-0"></span>
+                            <span class="w-1.5 h-1.5 rounded-full ${item.hasDiagram ? 'bg-electric-blue' : 'bg-white/60'} flex-shrink-0"></span>
                             <span class="text-white text-[10px] font-mono truncate">${escapeHtml(item.title)}</span>
                             <span class="text-white/30 text-[8px] font-mono flex-shrink-0">${item.timestamp}</span>
                         </div>
@@ -1549,7 +1549,7 @@ function switchTab(tab) {
         renderVault();
     } else if (tab === 'vault') {
         if (vaultArea) vaultArea.classList.remove('hidden');
-        if (tabVaultBtn) tabVaultBtn.className = 'font-label-mono-xs uppercase tracking-wider text-[10px] px-2 py-1 text-white border-b-2 border-green-400 transition-colors flex items-center gap-1.5 cursor-pointer';
+        if (tabVaultBtn) tabVaultBtn.className = 'font-label-mono-xs uppercase tracking-wider text-[10px] px-2 py-1 text-white border-b-2 border-electric-blue transition-colors flex items-center gap-1.5 cursor-pointer';
         renderVault();
     }
 }
@@ -1682,7 +1682,7 @@ function renderActionPlan(plan) {
             actionCommandsContainer.classList.remove('hidden');
             actionCommandsList.innerHTML = plan.commands.map((cmd) => `
                 <div class="flex items-center justify-between gap-2 p-2 bg-black border border-white/10 font-mono text-[10px]">
-                    <span class="text-green-400 truncate select-all">$ ${cmd}</span>
+                    <span class="text-white/80 truncate select-all">$ ${cmd}</span>
                     <button class="px-2 py-0.5 border border-white/20 hover:border-electric-blue text-white/70 hover:text-white text-[8px] uppercase tracking-wider transition-colors cursor-pointer flex-shrink-0" onclick="copyCommand('${cmd.replace(/'/g, "\\'")}', this)">COPY</button>
                 </div>
             `).join('');
@@ -1800,10 +1800,10 @@ function copyCommand(cmd, btn) {
     navigator.clipboard.writeText(cmd).then(() => {
         const original = btn.textContent;
         btn.textContent = 'COPIED!';
-        btn.classList.add('border-green-400', 'text-green-400');
+        btn.classList.add('border-electric-blue', 'text-electric-blue');
         setTimeout(() => {
             btn.textContent = original;
-            btn.classList.remove('border-green-400', 'text-green-400');
+            btn.classList.remove('border-electric-blue', 'text-electric-blue');
         }, 1500);
     });
 }

@@ -44,7 +44,7 @@
                         "tertiary-container": "#007f1b",
                         "on-error": "#690005",
                         "surface-container-low": "#1b1b1b",
-                        "status-green": "#00FF41",
+                        "status-green": "#2E5BFF",
                         "tertiary-fixed-dim": "#00e639",
                         "surface": "#131313",
                         "outline": "#8e90a2",
@@ -333,8 +333,8 @@
 
 <!-- Main Canvas Container -->
 <main class="relative flex flex-col pt-6 md:pt-8 px-4 md:px-margin-desktop pb-6 max-w-container-max w-full mx-auto">
-    <!-- Framing HUD Brackets -->
-    <div id="hud-frame" class="absolute inset-x-4 md:inset-x-margin-desktop top-[16px] bottom-[16px] pointer-events-none z-0">
+    <!-- Framing HUD Brackets - Fixed Viewport Frame (Triplespeed Inspired) -->
+    <div id="hud-frame" class="pointer-events-none fixed inset-x-3 sm:inset-x-6 md:inset-x-8 top-16 sm:top-20 md:top-24 bottom-3 sm:bottom-6 z-[45]">
         <div class="bracket-tl"></div>
         <div class="bracket-tr"></div>
         <div class="bracket-bl"></div>
@@ -360,67 +360,88 @@
                         START THE SHIFT <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </button>
                     <div class="flex items-center gap-3 font-label-mono-xs text-[9px] md:text-label-mono-xs text-white/50 uppercase mt-2">
-                        <span>// SYS_READY</span>
+                        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-electric-blue"></span> PRIVATE ARCHITECTURE</span>
                         <span>//</span>
-                        <span id="current-time-hud">12:56 AM</span>
+                        <span>0MS CLOUD LOGGING</span>
                         <span>//</span>
-                        <span class="text-electric-blue">GLOBAL_LISTENER.WAV</span>
+                        <span>REAL-TIME DUAL LATENCY</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Feature Grid Cards -->
-        <section class="w-full py-12">
-            <div class="grid grid-cols-1 md:grid-cols-3 border border-outline-variant/30 bg-black/70 backdrop-blur-md">
-                <!-- Card 1 -->
-                <div class="p-8 border-b md:border-b-0 md:border-r border-outline-variant/30 relative group hover:bg-surface-container/30 transition-colors duration-300">
+        <!-- Dynamic Stations Grid -->
+        <section class="w-full pb-14 border-b border-surface-variant/40">
+            <div class="flex justify-between items-center mb-6">
+                <span class="font-label-mono-xs text-label-mono-xs text-electric-blue tracking-widest uppercase">// 01 — ACTIVE FREQUENCY SPECTRUM</span>
+                <span class="font-label-mono-xs text-label-mono-xs text-slate-gray tracking-widest">3 NODES CONNECTED</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Station 1 -->
+                <div class="exact-card p-6 flex flex-col justify-between h-[280px] relative overflow-hidden group">
                     <div class="font-label-mono-xs text-label-mono-xs text-electric-blue uppercase absolute top-4 left-4">
-                        [001]
+                        // CHANNEL: INTELLECT
                     </div>
-                    <div class="mt-8 flex flex-col gap-4">
+                    <div class="mt-8">
                         <h3 class="font-stat-lg text-[20px] uppercase text-white tracking-wider">HEARS THE WAVER</h3>
                         <p class="font-body-md text-sm text-white/60 leading-relaxed">
-                            Vāk listens to the hesitation and speed in your voice, not just the text. It targets the thing underneath.
+                            vāk doesn't just listen to the words. It catches the pause before you say "it's fine." It hears where you're unsure.
                         </p>
                     </div>
-                </div>
-                <!-- Card 2 -->
-                <div class="p-8 border-b md:border-b-0 md:border-r border-outline-variant/30 relative group hover:bg-surface-container/30 transition-colors duration-300">
-                    <div class="font-label-mono-xs text-label-mono-xs text-electric-blue uppercase absolute top-4 left-4">
-                        [002]
+                    <div class="flex justify-between items-center text-[10px] font-label-mono-xs text-slate-gray border-t border-white/5 pt-3">
+                        <span>LATENCY: ~320MS</span>
+                        <span class="text-electric-blue">ADAPTIVE GAIN</span>
                     </div>
-                    <div class="mt-8 flex flex-col gap-4">
+                </div>
+
+                <!-- Station 2 -->
+                <div class="exact-card p-6 flex flex-col justify-between h-[280px] relative overflow-hidden group">
+                    <div class="font-label-mono-xs text-label-mono-xs text-electric-blue uppercase absolute top-4 left-4">
+                        // CHANNEL: LINGUISTIC
+                    </div>
+                    <div class="mt-8">
                         <h3 class="font-stat-lg text-[20px] uppercase text-white tracking-wider">CODE SWITCHING</h3>
                         <p class="font-body-md text-sm text-white/60 leading-relaxed">
-                            English, Hindi, Kannada. The raw, messy, mixed way you naturally speak in life. Vāk understands it all.
+                            Think in Kannada, clarify in English, swear in Hindi. vāk follows the contour of your native cadence without losing context.
                         </p>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px] font-label-mono-xs text-slate-gray border-t border-white/5 pt-3">
+                        <span>MODELS: 3 INTEGRATED</span>
+                        <span class="text-electric-blue">AUTO DETECT</span>
                     </div>
                 </div>
-                <!-- Card 3 -->
-                <div class="p-8 relative group hover:bg-surface-container/30 transition-colors duration-300">
+
+                <!-- Station 3 -->
+                <div class="exact-card p-6 flex flex-col justify-between h-[280px] relative overflow-hidden group">
                     <div class="font-label-mono-xs text-label-mono-xs text-electric-blue uppercase absolute top-4 left-4">
-                        [003]
+                        // CHANNEL: FRICTION
                     </div>
-                    <div class="mt-8 flex flex-col gap-4">
+                    <div class="mt-8">
                         <h3 class="font-stat-lg text-[20px] uppercase text-white tracking-wider">STRICT ALIGNMENT</h3>
                         <p class="font-body-md text-sm text-white/60 leading-relaxed">
-                            A thinking partner, a mentor. Available at 2am. Never coddling. Anti-sycophantic reflection.
+                            A companion that pushes back. When you justify inaction or circle around an uncomfortable truth, vāk holds the line.
                         </p>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px] font-label-mono-xs text-slate-gray border-t border-white/5 pt-3">
+                        <span>POSTURE: ZERO SYCOPHANCY</span>
+                        <span class="text-electric-blue">HIGH RIGOR</span>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Browser Execution Workbench Showcase -->
-        <section class="w-full pb-14">
-            <div class="flex justify-between items-center mb-4">
+        <section class="w-full pb-14 pt-10">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-2">
                 <span class="font-label-mono-xs text-label-mono-xs text-electric-blue tracking-widest uppercase">// 02 — BROWSER EXECUTION WORKBENCH</span>
-                <span class="font-label-mono-xs text-[9px] text-status-green uppercase font-mono flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-status-green"></span> ZERO TOKEN OVERHEAD
+                <span class="font-mono text-[9px] text-white/50 uppercase flex items-center gap-1.5 border border-white/10 px-2.5 py-0.5 tracking-wider bg-black/40">
+                    <span class="w-1.5 h-1.5 rounded-full bg-electric-blue"></span> ZERO TOKEN OVERHEAD
                 </span>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <p class="text-[12px] text-white/50 mb-5 max-w-2xl font-body-md leading-relaxed">
+                Native browser diagnostics, architecture renderers, and zero-cost local endpoint execution running directly inside your client session.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 <div class="p-5 border border-white/10 bg-black/80 flex flex-col justify-between hover:border-electric-blue/50 transition-colors">
                     <div>
                         <div class="text-electric-blue text-[11px] font-mono mb-2 flex items-center gap-1">
@@ -430,7 +451,9 @@
                         <h4 class="font-stat-lg text-sm text-white uppercase mb-1">Architecture Diagrams</h4>
                         <p class="text-[11px] text-white/60 leading-relaxed">Auto-generates dark-mode Mermaid flowcharts & topology graphs from spoken system designs.</p>
                     </div>
-                    <div class="mt-4 text-[9px] font-mono text-green-400">STATUS: NATIVE BROWSER</div>
+                    <div class="mt-4 text-[10px] font-mono text-white/40 uppercase flex items-center gap-1.5">
+                        <span class="w-1 h-1 rounded-full bg-electric-blue/70"></span> CLIENT-SIDE ENGINE
+                    </div>
                 </div>
                 <div class="p-5 border border-white/10 bg-black/80 flex flex-col justify-between hover:border-electric-blue/50 transition-colors">
                     <div>
@@ -441,7 +464,9 @@
                         <h4 class="font-stat-lg text-sm text-white uppercase mb-1">In-Browser API Tester</h4>
                         <p class="text-[11px] text-white/60 leading-relaxed">Mini-Postman running natively in browser. Test REST & webhook routes with live latency inspection.</p>
                     </div>
-                    <div class="mt-4 text-[9px] font-mono text-green-400">STATUS: NATIVE BROWSER</div>
+                    <div class="mt-4 text-[10px] font-mono text-white/40 uppercase flex items-center gap-1.5">
+                        <span class="w-1 h-1 rounded-full bg-electric-blue/70"></span> CLIENT-SIDE ENGINE
+                    </div>
                 </div>
                 <div class="p-5 border border-white/10 bg-black/80 flex flex-col justify-between hover:border-electric-blue/50 transition-colors">
                     <div>
@@ -452,7 +477,9 @@
                         <h4 class="font-stat-lg text-sm text-white uppercase mb-1">1-Click File Downloads</h4>
                         <p class="text-[11px] text-white/60 leading-relaxed">Instant browser download of generated Dockerfiles, .env files, SQL schemas, and config files.</p>
                     </div>
-                    <div class="mt-4 text-[9px] font-mono text-green-400">STATUS: NATIVE BROWSER</div>
+                    <div class="mt-4 text-[10px] font-mono text-white/40 uppercase flex items-center gap-1.5">
+                        <span class="w-1 h-1 rounded-full bg-electric-blue/70"></span> CLIENT-SIDE ENGINE
+                    </div>
                 </div>
                 <div class="p-5 border border-white/10 bg-black/80 flex flex-col justify-between hover:border-electric-blue/50 transition-colors">
                     <div>
@@ -463,7 +490,9 @@
                         <h4 class="font-stat-lg text-sm text-white uppercase mb-1">ADR & GitHub Exporters</h4>
                         <p class="text-[11px] text-white/60 leading-relaxed">Export decisions into ADR-001.md, format GitHub issue templates, or copy concise Slack team briefs.</p>
                     </div>
-                    <div class="mt-4 text-[9px] font-mono text-green-400">STATUS: NATIVE BROWSER</div>
+                    <div class="mt-4 text-[10px] font-mono text-white/40 uppercase flex items-center gap-1.5">
+                        <span class="w-1 h-1 rounded-full bg-electric-blue/70"></span> CLIENT-SIDE ENGINE
+                    </div>
                 </div>
             </div>
         </section>
@@ -473,89 +502,177 @@
          VIEW: ABOUT (Mission & Status Graphs)
          ───────────────────────────────────────────── -->
     <div id="view-about" class="view-content w-full relative z-10">
-        <!-- Hero About -->
-        <section class="py-16">
-            <div class="flex justify-between items-center mb-6 font-label-mono-xs text-label-mono-xs uppercase text-slate-gray tracking-widest">
-                <span>// CAM_03 - THE_MISSION_MANIFESTO</span>
-                <span>// ACCESS_CLEARANCE: OPEN</span>
-            </div>
-            <h1 class="font-stat-lg text-[28px] md:text-[40px] text-white leading-tight mb-8 max-w-4xl">
+        <!-- Hero About (Triplespeed Inspired) -->
+        <section class="pt-8 pb-14">
+            <h1 class="font-['Manrope'] text-[34px] sm:text-[48px] md:text-[64px] lg:text-[76px] font-light text-white leading-[1.04] tracking-[-0.03em] mb-8 max-w-4xl">
                 A secure space for raw, unedited thoughts.
             </h1>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl font-body-md text-sm md:text-base text-white/70">
-                <p class="leading-relaxed">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl font-['Manrope'] text-sm md:text-base text-white/70 leading-relaxed font-light mb-12">
+                <p>
                     vāk is built to stand in the gap between immediate reaction and deliberate thought. By speaking out loud, you externalize your internal dialogue. vāk listens, structures, and feeds back the friction required to clarify your mind.
                 </p>
-                <p class="leading-relaxed">
+                <p>
                     Rather than acting as a standard sycophantic chatbot, vāk is designed as a mirror. It tracks recurring patterns, notes where you hesitate, and prompts you to address the core of the issue.
                 </p>
             </div>
+
+            <!-- 4-Column Metric Stats Bar (Triplespeed Style) -->
+            <div class="pt-8 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-4xl">
+                <div>
+                    <div class="font-['Manrope'] text-3xl sm:text-4xl font-light text-white tracking-tight">100%</div>
+                    <div class="font-mono text-[9px] uppercase tracking-widest text-white/40 mt-1">PRIVATE BY ARCHITECTURE</div>
+                </div>
+                <div>
+                    <div class="font-['Manrope'] text-3xl sm:text-4xl font-light text-white tracking-tight">0ms</div>
+                    <div class="font-mono text-[9px] uppercase tracking-widest text-white/40 mt-1">CLOUD LOGGING OVERHEAD</div>
+                </div>
+                <div>
+                    <div class="font-['Manrope'] text-3xl sm:text-4xl font-light text-white tracking-tight">3</div>
+                    <div class="font-mono text-[9px] uppercase tracking-widest text-white/40 mt-1">INTELLIGENCE MODELS</div>
+                </div>
+                <div>
+                    <div class="font-['Manrope'] text-3xl sm:text-4xl font-light text-white tracking-tight">24/7</div>
+                    <div class="font-mono text-[9px] uppercase tracking-widest text-white/40 mt-1">HIGH-AGENCY DIALOGUE</div>
+                </div>
+            </div>
         </section>
 
-        <!-- Stats HUD Charts -->
+        <!-- Stats HUD Charts - Conceptual Baselines (Triplespeed SVG Inspired) -->
         <section class="py-8">
-            <div class="flex justify-between items-end mb-6 border-b border-surface-variant/40 pb-4">
-                <div>
-                    <span class="block font-label-mono-xs text-label-mono-xs uppercase text-slate-gray tracking-widest mb-1">// PERSONAL_COGNITIVE_GROWTH</span>
-                    <h2 class="font-stat-lg text-[22px] text-white uppercase tracking-wider">CONCEPTUAL BASELINES</h2>
+            <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-3 font-mono text-[10px] uppercase tracking-widest">
+                <div class="flex items-center gap-2 text-white/80">
+                    <span class="w-2 h-2 rounded-full bg-electric-blue"></span> DISCLOSED
                 </div>
-                <span class="font-label-mono-xs text-label-mono-xs uppercase text-electric-blue tracking-widest">ALGORITHM STABLE // BALANCED</span>
+                <div class="text-white/40">3 OF 12</div>
             </div>
 
-            <!-- Disclosed Row -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                <!-- Card 1 -->
-                <div class="exact-card p-6 flex flex-col relative">
-                    <div class="flex justify-between items-center mb-6">
-                        <span class="font-label-mono-xs text-label-mono-xs uppercase text-slate-gray">// SYNTHESIS LEVEL</span>
-                        <span class="font-label-mono-xs text-label-mono-xs uppercase text-status-green flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-status-green rounded-full"></span> CALIBRATED</span>
+            <!-- 3-Card Baseline Grid with Shaded Area Under Curves -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-14">
+                <!-- Card 1: Cognitive Alignment -->
+                <div class="exact-card p-6 flex flex-col justify-between relative bg-black/90 border border-white/15">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="font-mono text-[10px] uppercase text-white/40">// SYSTEM_01</span>
+                            <span class="font-mono text-[10px] uppercase text-white/70 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 bg-electric-blue rounded-full"></span> ACTIVE
+                            </span>
+                        </div>
+                        <h3 class="font-mono text-sm uppercase text-white mb-5 tracking-widest">COGNITIVE ALIGNMENT</h3>
+                        
+                        <!-- Shaded Area Curve SVG -->
+                        <div class="h-28 w-full relative mb-3 bg-black/40 overflow-hidden border border-white/5">
+                            <svg viewBox="0 0 320 96" class="w-full h-full" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="neonFill_1" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#2945D8" stop-opacity="0.55" />
+                                        <stop offset="100%" stop-color="#2945D8" stop-opacity="0.0" />
+                                    </linearGradient>
+                                    <pattern id="gridDots_1" width="16" height="16" patternUnits="userSpaceOnUse">
+                                        <circle cx="0.8" cy="0.8" r="0.8" fill="rgba(255,255,255,0.12)" />
+                                    </pattern>
+                                </defs>
+                                <rect width="320" height="96" fill="url(#gridDots_1)" />
+                                <line x1="6" y1="90" x2="314" y2="90" stroke="rgba(255,255,255,0.18)" stroke-width="1" stroke-dasharray="2 3" />
+                                <polygon points="6,90 6.0,86.6 40.2,85.8 74.4,84.1 108.7,81.6 142.9,78.2 177.1,71.5 211.3,60.6 245.6,43.8 279.8,24.5 314.0,10.2 314,90" fill="url(#neonFill_1)" />
+                                <polyline points="6.0,86.6 40.2,85.8 74.4,84.1 108.7,81.6 142.9,78.2 177.1,71.5 211.3,60.6 245.6,43.8 279.8,24.5 314.0,10.2" fill="none" stroke="#5B7BFF" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" style="filter: drop-shadow(0 0 6px rgba(91,123,255,0.85));" />
+                                <circle cx="314" cy="10.2" r="8" fill="rgba(91,123,255,0.2)" />
+                                <circle cx="314" cy="10.2" r="3.5" fill="#ffffff" style="filter: drop-shadow(0 0 5px rgba(255,255,255,0.9));" />
+                            </svg>
+                        </div>
                     </div>
-                    <h3 class="font-label-mono-sm text-label-mono-sm uppercase text-white mb-6 tracking-widest">COGNITIVE ALIGNMENT</h3>
                     
-                    <!-- Chart SVG -->
-                    <div class="h-28 w-full border-b border-l border-white/20 relative flex items-end mb-4 bg-black/60">
-                        <svg class="w-full h-full absolute inset-0 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
-                            <path class="glow-text" d="M0 90 Q 40 85, 100 15" fill="none" stroke="#2E5BFF" stroke-width="2.5"></path>
-                            <circle cx="100" cy="15" fill="#ffffff" r="3"></circle>
-                        </svg>
-                    </div>
-                    
-                    <div class="flex justify-between items-end font-label-mono-xs text-label-mono-xs uppercase text-slate-gray mt-2">
+                    <div class="flex justify-between items-end font-mono text-[10px] uppercase text-white/40 pt-3 border-t border-white/5">
                         <div>
-                            <span class="block mb-0.5">REFLECTIVE DEPTH</span>
-                            <span class="text-white">ACTIVE</span>
+                            <span class="block text-white/30 text-[8px] mb-0.5">DEPTH</span>
+                            <span class="text-white text-xs font-medium">0 &rarr; 1M</span>
                         </div>
                         <div class="text-right">
-                            <span class="block mb-0.5">SYNTHESIS RATE</span>
-                            <span class="text-white">100% PERSONALIZED</span>
+                            <span class="block text-white/30 text-[8px] mb-0.5">WINDOW</span>
+                            <span class="text-white text-xs font-medium">3 MONTHS</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Card 2 -->
-                <div class="exact-card p-6 flex flex-col relative">
-                    <div class="flex justify-between items-center mb-6">
-                        <span class="font-label-mono-xs text-label-mono-xs uppercase text-slate-gray">// DIALOGUE POSTURE</span>
-                        <span class="font-label-mono-xs text-label-mono-xs uppercase text-status-green flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-status-green rounded-full"></span> ENGAGED</span>
+                <!-- Card 2: Anti-Sycophancy Depth -->
+                <div class="exact-card p-6 flex flex-col justify-between relative bg-black/90 border border-white/15">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="font-mono text-[10px] uppercase text-white/40">// SYSTEM_02</span>
+                            <span class="font-mono text-[10px] uppercase text-white/70 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 bg-electric-blue rounded-full"></span> ACTIVE
+                            </span>
+                        </div>
+                        <h3 class="font-mono text-sm uppercase text-white mb-5 tracking-widest">ANTI-SYCOPHANCY DEPTH</h3>
+                        
+                        <!-- Shaded Area Curve SVG -->
+                        <div class="h-28 w-full relative mb-3 bg-black/40 overflow-hidden border border-white/5">
+                            <svg viewBox="0 0 320 96" class="w-full h-full" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="neonFill_2" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#2945D8" stop-opacity="0.55" />
+                                        <stop offset="100%" stop-color="#2945D8" stop-opacity="0.0" />
+                                    </linearGradient>
+                                </defs>
+                                <rect width="320" height="96" fill="url(#gridDots_1)" />
+                                <line x1="6" y1="90" x2="314" y2="90" stroke="rgba(255,255,255,0.18)" stroke-width="1" stroke-dasharray="2 3" />
+                                <polygon points="6,90 6.0,88.2 40.2,87.6 74.4,86.8 108.7,85.2 142.9,83.0 177.1,79.5 211.3,73.4 245.6,62.8 279.8,42.0 314.0,12.0 314,90" fill="url(#neonFill_2)" />
+                                <polyline points="6.0,88.2 40.2,87.6 74.4,86.8 108.7,85.2 142.9,83.0 177.1,79.5 211.3,73.4 245.6,62.8 279.8,42.0 314.0,12.0" fill="none" stroke="#5B7BFF" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" style="filter: drop-shadow(0 0 6px rgba(91,123,255,0.85));" />
+                                <circle cx="314" cy="12.0" r="8" fill="rgba(91,123,255,0.2)" />
+                                <circle cx="314" cy="12.0" r="3.5" fill="#ffffff" style="filter: drop-shadow(0 0 5px rgba(255,255,255,0.9));" />
+                            </svg>
+                        </div>
                     </div>
-                    <h3 class="font-label-mono-sm text-label-mono-sm uppercase text-white mb-6 tracking-widest">ANTI-SYCOPHANCY DEPTH</h3>
                     
-                    <!-- Chart SVG -->
-                    <div class="h-28 w-full border-b border-l border-white/20 relative flex items-end mb-4 bg-black/60">
-                        <svg class="w-full h-full absolute inset-0 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
-                            <path class="glow-text" d="M0 95 Q 60 90, 100 25" fill="none" stroke="#2E5BFF" stroke-width="2.5"></path>
-                            <circle cx="100" cy="25" fill="#ffffff" r="3"></circle>
-                        </svg>
-                    </div>
-                    
-                    <div class="flex justify-between items-end font-label-mono-xs text-label-mono-xs uppercase text-slate-gray mt-2">
+                    <div class="flex justify-between items-end font-mono text-[10px] uppercase text-white/40 pt-3 border-t border-white/5">
                         <div>
-                            <span class="block mb-0.5">CONSTRUCTIVE FRICTION</span>
-                            <span class="text-white">ACTIVE</span>
+                            <span class="block text-white/30 text-[8px] mb-0.5">CONSTRUCTIVE FRICTION</span>
+                            <span class="text-white text-xs font-medium">0 &rarr; 1M</span>
                         </div>
                         <div class="text-right">
-                            <span class="block mb-0.5">BIAS CORRECTION</span>
-                            <span class="text-white">DYNAMIC</span>
+                            <span class="block text-white/30 text-[8px] mb-0.5">WINDOW</span>
+                            <span class="text-white text-xs font-medium">1 MONTH</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Temporal Synthesis -->
+                <div class="exact-card p-6 flex flex-col justify-between relative bg-black/90 border border-white/15">
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="font-mono text-[10px] uppercase text-white/40">// SYSTEM_03</span>
+                            <span class="font-mono text-[10px] uppercase text-white/70 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 bg-electric-blue rounded-full"></span> ACTIVE
+                            </span>
+                        </div>
+                        <h3 class="font-mono text-sm uppercase text-white mb-5 tracking-widest">TEMPORAL SYNTHESIS</h3>
+                        
+                        <!-- Shaded Area Curve SVG -->
+                        <div class="h-28 w-full relative mb-3 bg-black/40 overflow-hidden border border-white/5">
+                            <svg viewBox="0 0 320 96" class="w-full h-full" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="neonFill_3" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#2945D8" stop-opacity="0.55" />
+                                        <stop offset="100%" stop-color="#2945D8" stop-opacity="0.0" />
+                                    </linearGradient>
+                                </defs>
+                                <rect width="320" height="96" fill="url(#gridDots_1)" />
+                                <line x1="6" y1="90" x2="314" y2="90" stroke="rgba(255,255,255,0.18)" stroke-width="1" stroke-dasharray="2 3" />
+                                <polygon points="6,90 6.0,87.0 40.2,86.0 74.4,84.5 108.7,82.5 142.9,79.8 177.1,75.0 211.3,66.5 245.6,52.0 279.8,32.0 314.0,14.5 314,90" fill="url(#neonFill_3)" />
+                                <polyline points="6.0,87.0 40.2,86.0 74.4,84.5 108.7,82.5 142.9,79.8 177.1,75.0 211.3,66.5 245.6,52.0 279.8,32.0 314.0,14.5" fill="none" stroke="#5B7BFF" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" style="filter: drop-shadow(0 0 6px rgba(91,123,255,0.85));" />
+                                <circle cx="314" cy="14.5" r="8" fill="rgba(91,123,255,0.2)" />
+                                <circle cx="314" cy="14.5" r="3.5" fill="#ffffff" style="filter: drop-shadow(0 0 5px rgba(255,255,255,0.9));" />
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-end font-mono text-[10px] uppercase text-white/40 pt-3 border-t border-white/5">
+                        <div>
+                            <span class="block text-white/30 text-[8px] mb-0.5">SYNTHESIS VELOCITY</span>
+                            <span class="text-white text-xs font-medium">0 &rarr; 1M</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-white/30 text-[8px] mb-0.5">WINDOW</span>
+                            <span class="text-white text-xs font-medium">3.5 MONTHS</span>
                         </div>
                     </div>
                 </div>
@@ -572,7 +689,7 @@
                     <div class="exact-card p-6 border-dashed border-white/20 flex flex-col bg-black/90">
                         <div class="flex justify-between items-center mb-6">
                             <span class="font-label-mono-xs text-label-mono-xs uppercase text-slate-gray">// AUDIO_INGEST</span>
-                            <span class="font-label-mono-xs text-label-mono-xs uppercase text-status-green flex items-center gap-1.5"><div class="w-1.5 h-1.5 bg-status-green rounded-full"></div> ACTIVE</span>
+                            <span class="font-label-mono-xs text-label-mono-xs uppercase text-white/60 flex items-center gap-1.5"><div class="w-1.5 h-1.5 bg-electric-blue rounded-full"></div> ACTIVE</span>
                         </div>
                         <h3 class="font-label-mono-sm text-label-mono-sm uppercase text-white mb-6 tracking-widest">ACTIVE LISTEN LOOP</h3>
                         <div class="h-24 w-full flex flex-col items-center justify-center border border-white/10 mesh-bg relative mb-6">
@@ -589,7 +706,7 @@
                     <div class="exact-card p-6 border-dashed border-white/20 flex flex-col bg-black/90">
                         <div class="flex justify-between items-center mb-6">
                             <span class="font-label-mono-xs text-label-mono-xs uppercase text-slate-gray">// MEM_STORE</span>
-                            <span class="font-label-mono-xs text-label-mono-xs uppercase text-status-green flex items-center gap-1.5"><div class="w-1.5 h-1.5 bg-status-green rounded-full"></div> SECURED</span>
+                            <span class="font-label-mono-xs text-label-mono-xs uppercase text-white/60 flex items-center gap-1.5"><div class="w-1.5 h-1.5 bg-electric-blue rounded-full"></div> SECURED</span>
                         </div>
                         <h3 class="font-label-mono-sm text-label-mono-sm uppercase text-white mb-6 tracking-widest">TEMPORAL VAULT</h3>
                         <div class="h-24 w-full flex flex-col items-center justify-center border border-white/10 mesh-bg relative mb-6">
@@ -606,7 +723,7 @@
                     <div class="exact-card p-6 border-dashed border-white/20 flex flex-col bg-black/90">
                         <div class="flex justify-between items-center mb-6">
                             <span class="font-label-mono-xs text-label-mono-xs uppercase text-slate-gray">// SYNTH_ENGINE</span>
-                            <span class="font-label-mono-xs text-label-mono-xs uppercase text-status-green flex items-center gap-1.5"><div class="w-1.5 h-1.5 bg-status-green rounded-full"></div> LIVE</span>
+                            <span class="font-label-mono-xs text-label-mono-xs uppercase text-white/60 flex items-center gap-1.5"><div class="w-1.5 h-1.5 bg-electric-blue rounded-full"></div> LIVE</span>
                         </div>
                         <h3 class="font-label-mono-sm text-label-mono-sm uppercase text-white mb-6 tracking-widest">COGNITIVE SYNTHESIS</h3>
                         <div class="h-24 w-full flex flex-col items-center justify-center border border-white/10 mesh-bg relative mb-6">
@@ -1393,15 +1510,15 @@
 
             <!-- Local Hosting Guest Mode Bypass Container -->
             <div id="auth-local-guest-container" class="hidden mt-6 pt-5 border-t border-white/10">
-                <div class="p-3.5 bg-status-green/5 border border-status-green/30 flex flex-col gap-2">
-                    <div class="flex items-center gap-1.5 text-status-green font-mono text-[10px]">
-                        <span class="w-2 h-2 rounded-full bg-status-green animate-pulse"></span>
+                <div class="p-3.5 bg-electric-blue/10 border border-electric-blue/40 flex flex-col gap-2">
+                    <div class="flex items-center gap-1.5 text-electric-blue font-mono text-[10px]">
+                        <span class="w-2 h-2 rounded-full bg-electric-blue animate-pulse"></span>
                         <span class="font-bold uppercase tracking-wider">// LOCAL_HOSTING_ENVIRONMENT</span>
                     </div>
                     <p class="font-label-mono-xs text-[9px] text-white/60 leading-relaxed">
                         Running on localhost. You can bypass Firebase Auth and test all Vāk voice and terminal features directly in Guest Mode.
                     </p>
-                    <button type="button" id="auth-local-guest-btn" class="w-full py-2 bg-status-green/20 hover:bg-status-green hover:text-black border border-status-green/50 text-status-green font-label-mono-xs text-[10px] uppercase font-bold tracking-wider transition-all duration-300" onclick="continueAsLocalGuest()">
+                    <button type="button" id="auth-local-guest-btn" class="w-full py-2 bg-electric-blue/20 hover:bg-electric-blue hover:text-white border border-electric-blue/60 text-electric-blue font-label-mono-xs text-[10px] uppercase font-bold tracking-wider transition-all duration-300" onclick="continueAsLocalGuest()">
                         ⚡ BYPASS AUTH (LOCAL GUEST MODE)
                     </button>
                 </div>
