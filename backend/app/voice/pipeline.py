@@ -283,10 +283,6 @@ class VoicePipeline:
             task = asyncio.create_task(self._update_insights_background(user_id or "default", session.history, session, on_meta))
             task.add_done_callback(_bg_task_done)
 
-        # Trigger background synthesis of agentic action plan
-        task = asyncio.create_task(self._update_action_plan_background(user_text, full_response.strip(), session.history, session, on_meta))
-        task.add_done_callback(_bg_task_done)
-
         # ── Log metrics ──
         metrics.log()
         if on_meta:
@@ -364,10 +360,6 @@ class VoicePipeline:
         if len(session.history) >= 4 and len(session.history) % 6 == 0:
             task = asyncio.create_task(self._update_insights_background(user_id or "default", session.history, session, on_meta))
             task.add_done_callback(_bg_task_done)
-
-        # Trigger background synthesis of agentic action plan
-        task = asyncio.create_task(self._update_action_plan_background(user_text, full_response.strip(), session.history, session, on_meta))
-        task.add_done_callback(_bg_task_done)
         
         metrics.log()
         if on_meta:

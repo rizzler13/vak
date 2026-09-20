@@ -132,6 +132,7 @@
             border-color: rgba(255, 255, 255, 0.25);
             border-style: solid;
             transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none !important;
         }
         .bracket-tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
         .bracket-tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
@@ -334,7 +335,7 @@
 <!-- Main Canvas Container -->
 <main class="relative flex flex-col pt-6 md:pt-8 px-4 md:px-margin-desktop pb-6 max-w-container-max w-full mx-auto">
     <!-- Framing HUD Brackets - Fixed Viewport Frame (Triplespeed Inspired) -->
-    <div id="hud-frame" class="pointer-events-none fixed inset-x-3 sm:inset-x-6 md:inset-x-8 top-16 sm:top-20 md:top-24 bottom-3 sm:bottom-6 z-[45]">
+    <div id="hud-frame" class="pointer-events-none fixed inset-x-3 sm:inset-x-6 md:inset-x-8 top-16 sm:top-20 md:top-24 bottom-3 sm:bottom-6 z-10">
         <div class="bracket-tl"></div>
         <div class="bracket-tr"></div>
         <div class="bracket-bl"></div>
@@ -745,231 +746,27 @@
             </div>
         </div>
 
-        <!-- Column 3: Transcripts & Agentic Action Deck -->
-        <div id="chat-transcript-panel" class="w-full md:w-[480px] flex-shrink-0 flex flex-col gap-6 h-[500px] md:h-[600px] overflow-hidden">
-            <!-- Transcript Window -->
-            <div class="flex-grow exact-card p-5 flex flex-col relative overflow-hidden bg-black/90 h-full">
-                <!-- Header with Tabs -->
+        <!-- Column 3: Transcripts & Cognitive Reflection Stream -->
+        <div id="chat-transcript-panel" class="w-full md:w-[480px] flex-shrink-0 flex flex-col gap-6 h-[500px] md:h-[600px] min-h-0">
+            <!-- Transcript Window (Live Dialogue & Cognitive Reflection Stream) -->
+            <div class="flex-grow exact-card p-5 flex flex-col relative bg-black/90 h-full min-h-0">
+                <!-- Header -->
                 <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-3 flex-shrink-0">
-                    <div class="flex items-center gap-3">
-                        <button id="tab-dialogue-btn" class="font-label-mono-xs uppercase tracking-wider text-[10px] px-2 py-1 text-white border-b-2 border-electric-blue transition-colors cursor-pointer flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-[12px]">chat</span>
-                            <span>DIALOGUE</span>
-                        </button>
-                        <button id="tab-action-btn" class="font-label-mono-xs uppercase tracking-wider text-[10px] px-2 py-1 text-white/50 hover:text-white border-b-2 border-transparent transition-colors flex items-center gap-1.5 cursor-pointer">
-                            <span class="w-1.5 h-1.5 rounded-full bg-electric-blue animate-pulse"></span>
-                            <span>ACTION DECK</span>
-                            <span id="action-task-count" class="px-1.5 py-0.5 bg-electric-blue/20 text-electric-blue rounded text-[8px] font-semibold hidden">0</span>
-                        </button>
-                        <button id="tab-vault-btn" class="font-label-mono-xs uppercase tracking-wider text-[10px] px-2 py-1 text-white/50 hover:text-white border-b-2 border-transparent transition-colors flex items-center gap-1.5 cursor-pointer" title="All generated deliverables and work products">
-                            <span class="material-symbols-outlined text-[12px]">inventory_2</span>
-                            <span>WORK DONE</span>
-                            <span id="vault-items-count" class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-[8px] font-semibold hidden">0</span>
-                        </button>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-electric-blue animate-pulse"></span>
+                        <span class="font-mono text-[10px] uppercase tracking-widest text-white font-bold">// LIVE DIALOGUE STREAM</span>
                     </div>
-                    <div class="flex items-center gap-1.5">
-                        <button id="deck-back-header-btn" onclick="resetActionDeckToOverview()" class="font-label-mono-xs text-[9px] text-white/60 hover:text-white border border-white/20 hover:border-electric-blue px-2 py-0.5 uppercase flex items-center gap-1 transition-colors cursor-pointer hidden" title="Back to Workbench Capabilities Overview">
-                            <span class="material-symbols-outlined text-[12px]">arrow_back</span>
-                            <span>OVERVIEW</span>
-                        </button>
-                        <button id="deck-resume-header-btn" onclick="resumeLatestActionPlan()" class="font-label-mono-xs text-[9px] text-electric-blue hover:text-white border border-electric-blue/40 hover:border-electric-blue px-2 py-0.5 uppercase flex items-center gap-1 transition-colors cursor-pointer hidden" title="Resume current deliverable in Action Deck">
-                            <span class="material-symbols-outlined text-[12px]">play_arrow</span>
-                            <span>CURRENT WORK</span>
-                        </button>
-                        <button id="export-plan-btn" class="font-label-mono-xs text-[9px] text-white/40 hover:text-electric-blue flex items-center gap-1 transition-colors cursor-pointer hidden" title="Export Markdown Work Plan">
-                            <span class="material-symbols-outlined text-[12px]">content_copy</span>
-                            <span id="export-btn-label">PLAN</span>
-                        </button>
-                        <button id="export-github-btn" class="font-label-mono-xs text-[9px] text-white/40 hover:text-electric-blue flex items-center gap-1 transition-colors cursor-pointer hidden" title="Export as GitHub Issue">
-                            <span class="material-symbols-outlined text-[12px]">terminal</span>
-                            <span>ISSUE</span>
-                        </button>
-                        <button id="export-adr-btn" class="font-label-mono-xs text-[9px] text-white/40 hover:text-electric-blue flex items-center gap-1 transition-colors cursor-pointer hidden" title="Download Architecture Decision Record">
-                            <span class="material-symbols-outlined text-[12px]">description</span>
-                            <span>ADR</span>
-                        </button>
-                        <button id="export-slack-btn" class="font-label-mono-xs text-[9px] text-white/40 hover:text-electric-blue flex items-center gap-1 transition-colors cursor-pointer hidden" title="Copy Team Brief">
-                            <span class="material-symbols-outlined text-[12px]">chat</span>
-                            <span>BRIEF</span>
-                        </button>
-                    </div>
+                    <span class="font-mono text-[9px] uppercase tracking-wider text-white/40">// REFLECTIVE LOOP</span>
                 </div>
                 
-                <!-- Dialogue View -->
-                <div id="voice-transcript-area" class="flex-grow overflow-y-auto pr-2 flex flex-col gap-4 font-body-md text-sm md:text-[15px] pb-4">
+                <!-- Dialogue View (Silky Scrollable Area) -->
+                <div id="voice-transcript-area" class="flex-grow overflow-y-auto min-h-0 pr-2 flex flex-col gap-4 font-body-md text-sm md:text-[15px] pb-4 select-text">
                     <div class="text-white/40 font-label-mono-xs uppercase tracking-widest text-center mt-8 select-none">// START SESSION TO ENGAGE DIALOGUE</div>
-                </div>
-
-                <!-- Agentic Action Deck View -->
-                <div id="action-deck-area" class="flex-grow overflow-y-auto pr-2 flex-col gap-3 font-label-mono-xs text-xs pb-4 hidden">
-                    <div id="action-deck-empty" class="p-6 border border-white/10 bg-black/50 text-center space-y-3">
-                        <div class="w-10 h-10 mx-auto rounded-full bg-electric-blue/10 border border-electric-blue/30 flex items-center justify-center">
-                            <span class="material-symbols-outlined text-electric-blue text-lg">psychology</span>
-                        </div>
-                        <h4 class="font-mono text-xs uppercase text-white font-bold tracking-wider">// ACTION DECK READY</h4>
-                        <p class="text-[11px] text-white/60 max-w-sm mx-auto leading-relaxed">
-                            Engage in dialogue or speak freely. As your thoughts clarify, your action steps and decision frameworks will organize live right here.
-                        </p>
-                    </div>
-
-
-                    </div>
-                    <div id="action-deck-content" class="space-y-4 hidden">
-                        <!-- Action Plan Title & Objective -->
-                        <div class="border border-electric-blue/30 bg-electric-blue/5 p-3">
-                            <div class="flex items-center justify-between">
-                                <span class="font-label-mono-xs text-[8px] uppercase tracking-widest text-electric-blue font-bold">// WORK_ORDER</span>
-                                <div class="flex items-center gap-2">
-                                    <button onclick="resetActionDeckToOverview()" class="text-[9px] text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/20 px-2 py-0.5 uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1" title="Exit demo and return to Workbench overview">
-                                        <span class="material-symbols-outlined text-[12px]">arrow_back</span>
-                                        <span>BACK TO OVERVIEW</span>
-                                    </button>
-                                    <span id="action-plan-badge" class="px-1.5 py-0.5 bg-electric-blue/20 text-electric-blue text-[8px] uppercase">READY</span>
-                                </div>
-                            </div>
-                            <h4 id="action-plan-title" class="font-stat-lg text-sm text-white uppercase tracking-wider mt-1">PLAN TITLE</h4>
-                            <p id="action-plan-objective" class="text-[10px] text-white/70 mt-1 leading-relaxed">Objective description</p>
-                        </div>
-
-                        <!-- Architecture Diagram Visualizer (Mermaid.js) -->
-                        <div id="action-diagram-container" class="border border-white/10 p-3 bg-black/60 hidden">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-slate-gray uppercase text-[9px] tracking-wider flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-[13px] text-electric-blue">schema</span>
-                                    // ARCHITECTURE VISUALIZER
-                                </span>
-                                <div class="flex items-center gap-2">
-                                    <button id="copy-mermaid-btn" class="text-white/40 hover:text-electric-blue text-[8px] uppercase tracking-wider cursor-pointer">COPY MERMAID</button>
-                                </div>
-                            </div>
-                            <div id="action-diagram-render" class="bg-black/90 border border-white/5 p-3 overflow-x-auto flex justify-center min-h-[100px] text-white"></div>
-                        </div>
-
-                        <!-- Task Checklist -->
-                        <div class="border border-white/10 p-3 bg-black/40">
-                            <div class="text-slate-gray uppercase text-[9px] tracking-wider mb-2 flex justify-between items-center">
-                                <span>// EXECUTION CHECKLIST</span>
-                                <span id="action-task-progress" class="text-white/50 text-[8px]">0/0 DONE</span>
-                            </div>
-                            <div id="action-task-list" class="space-y-2">
-                                <!-- Tasks injected here -->
-                            </div>
-                        </div>
-
-                        <!-- CLI / Shell Commands -->
-                        <div id="action-commands-container" class="border border-white/10 p-3 bg-black/40 hidden">
-                            <div class="text-slate-gray uppercase text-[9px] tracking-wider mb-2">// TERMINAL COMMANDS</div>
-                            <div id="action-commands-list" class="space-y-1.5">
-                                <!-- Commands injected here -->
-                            </div>
-                        </div>
-
-                        <!-- In-Browser API & Endpoint Tester -->
-                        <div id="action-api-container" class="border border-white/10 p-3 bg-black/60 hidden">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-slate-gray uppercase text-[9px] tracking-wider flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-[13px] text-electric-blue">send</span>
-                                    <span>// IN-BROWSER API TESTER</span>
-                                    <span id="api-test-proxy-badge" class="px-1.5 py-0.5 text-[8px] font-mono text-electric-blue border border-electric-blue/30 bg-electric-blue/10 uppercase tracking-tight">AUTO CORS PROXY</span>
-                                </span>
-                                <span id="api-test-badge" class="px-1.5 py-0.5 border border-white/10 text-[8px] text-white/50 uppercase">STANDBY</span>
-                            </div>
-                            <div class="space-y-2">
-                                <div class="flex gap-1.5">
-                                    <select id="api-test-method" class="bg-black border border-white/20 text-electric-blue text-[10px] font-mono px-2 py-1 focus:outline-none">
-                                        <option value="GET">GET</option>
-                                        <option value="POST">POST</option>
-                                        <option value="PUT">PUT</option>
-                                        <option value="DELETE">DELETE</option>
-                                        <option value="PATCH">PATCH</option>
-                                        <option value="HEAD">HEAD</option>
-                                    </select>
-                                    <input type="text" id="api-test-url" placeholder="https://api.example.com/v1/..." class="flex-grow bg-black border border-white/20 text-white text-[10px] font-mono px-2.5 py-1 focus:outline-none focus:border-electric-blue" />
-                                    <button id="api-test-send-btn" class="bg-electric-blue hover:bg-electric-blue/80 text-white text-[9px] uppercase px-3 py-1 font-mono tracking-wider cursor-pointer font-bold transition-all">TEST</button>
-                                </div>
-                                <div id="api-test-body-container" class="hidden">
-                                    <textarea id="api-test-body" rows="2" placeholder='{"key": "value"}' class="w-full bg-black border border-white/10 text-green-400 text-[10px] font-mono p-1.5 focus:outline-none"></textarea>
-                                </div>
-                                <div id="api-test-response-drawer" class="hidden border-t border-white/10 pt-2 mt-2">
-                                    <div class="flex justify-between items-center text-[9px] font-mono mb-1.5">
-                                        <div class="flex items-center gap-2">
-                                            <span id="api-test-status" class="text-white/60 font-bold">STATUS: --</span>
-                                            <span id="api-test-route-info" class="text-[8px] text-electric-blue hidden">PROXIED</span>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <span id="api-test-time" class="text-white/50">-- ms</span>
-                                            <button id="api-test-copy-btn" class="text-electric-blue hover:underline uppercase text-[8px] cursor-pointer font-bold">COPY</button>
-                                        </div>
-                                    </div>
-                                    <!-- View Tabs: Smart Extract / Raw Source / Headers -->
-                                    <div class="flex items-center gap-3 border-b border-white/10 pb-1 mb-1.5 text-[8px] font-mono uppercase">
-                                        <button type="button" id="api-test-tab-parsed" class="text-electric-blue border-b border-electric-blue pb-0.5 cursor-pointer font-bold transition-all">✨ Smart Extract</button>
-                                        <button type="button" id="api-test-tab-raw" class="text-white/40 hover:text-white pb-0.5 cursor-pointer transition-all">📄 Raw (<span id="api-test-raw-size">0 KB</span>)</button>
-                                        <button type="button" id="api-test-tab-headers" class="text-white/40 hover:text-white pb-0.5 cursor-pointer transition-all">📋 Headers</button>
-                                    </div>
-                                    <pre id="api-test-response-body" class="bg-black p-2.5 border border-white/5 text-[9px] font-mono text-white/80 max-h-56 overflow-y-auto select-text whitespace-pre-wrap break-all leading-relaxed"></pre>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Code Blueprint -->
-                        <div id="action-code-container" class="border border-white/10 p-3 bg-black/40 hidden">
-                            <div class="flex justify-between items-center mb-1.5">
-                                <span id="action-code-filename" class="text-slate-gray uppercase text-[9px] tracking-wider">// CODE BLUEPRINT</span>
-                                <div class="flex items-center gap-2">
-                                    <button id="download-code-btn" class="text-green-400 hover:underline text-[9px] uppercase tracking-wider cursor-pointer flex items-center gap-1">
-                                        <span class="material-symbols-outlined text-[12px]">download</span>
-                                        <span>DOWNLOAD FILE</span>
-                                    </button>
-                                    <button id="copy-code-btn" class="text-electric-blue hover:underline text-[9px] uppercase tracking-wider cursor-pointer">COPY CODE</button>
-                                </div>
-                            </div>
-                            <pre id="action-code-block" class="bg-black border border-white/5 p-2.5 text-[10px] text-green-400 font-mono overflow-x-auto max-h-40 select-text"></pre>
-                        </div>
-
-                        <!-- Architecture Notes -->
-                        <div id="action-notes-container" class="border-l-2 border-electric-blue/70 pl-3 py-1 text-white/60 text-[10px] leading-relaxed hidden">
-                            <span id="action-notes-text"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Work Done / Deliverables Vault View -->
-                <div id="vault-area" class="flex-grow overflow-y-auto pr-2 flex-col gap-3 font-label-mono-xs text-xs pb-4 hidden">
-                    <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-green-400 text-sm">inventory_2</span>
-                            <span class="font-label-mono-xs text-[10px] uppercase tracking-widest text-white font-bold">// WORK DONE — SESSION DELIVERABLES</span>
-                        </div>
-                        <span id="vault-count-badge" class="px-1.5 py-0.5 bg-green-500/10 text-green-400 text-[8px] uppercase border border-green-500/20 font-mono">0 ARTIFACTS</span>
-                    </div>
-
-                    <!-- Empty State for Vault -->
-                    <div id="vault-empty" class="p-8 border border-white/10 bg-black/40 text-center space-y-2">
-                        <span class="material-symbols-outlined text-white/30 text-3xl">inventory_2</span>
-                        <div class="text-white/60 text-xs uppercase tracking-wider font-mono">No deliverables saved yet</div>
-                        <p class="text-white/40 text-[10px] max-w-sm mx-auto">As Vāk generates architecture diagrams, code blueprints, API tests, and checklists, they are automatically stored here so you never lose your work.</p>
-                    </div>
-
-                    <!-- Deliverables List Grid -->
-                    <div id="vault-list" class="space-y-3 hidden">
-                        <!-- Cards injected here dynamically -->
-                    </div>
-                </div>
-
-                <!-- Quick Action Chips -->
-                <div class="flex items-center gap-1.5 overflow-x-auto py-1.5 border-t border-white/5 flex-shrink-0 no-scrollbar">
-                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Design the architecture diagram and component topology for this.">⚡ Architecture Graph</button>
-                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Help me test this API endpoint and inspect response payload.">🧪 Test Endpoint</button>
-                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Break this down into an actionable step-by-step task checklist.">📋 Task Checklist</button>
-                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Generate the configuration file or code blueprint for this with filename.">💾 Scaffold File</button>
-                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Document this technical decision as an Architecture Decision Record (ADR).">📄 Export ADR</button>
-                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Analyze the root cause and isolate the failure point.">🔍 Root Cause</button>
                 </div>
 
                 <!-- Input Row -->
                 <div class="border-t border-white/10 pt-3 flex gap-2 flex-shrink-0">
-                    <input type="text" id="voice-text-input" placeholder="Type prompt or task to direct execution..." class="flex-grow bg-black border border-white/10 text-white placeholder-white/30 text-xs px-3 py-2.5 focus:outline-none focus:border-electric-blue transition-colors focus:ring-0 rounded-none font-label-mono-sm" />
+                    <input type="text" id="voice-text-input" placeholder="Speak or type your raw thought..." class="flex-grow bg-black border border-white/10 text-white placeholder-white/30 text-xs px-3 py-2.5 focus:outline-none focus:border-electric-blue transition-colors focus:ring-0 rounded-none font-body-md" />
                     <button id="voice-text-send-btn" class="bg-electric-blue border border-electric-blue hover:bg-transparent hover:text-electric-blue text-white px-4 py-2.5 transition-colors font-label-mono-sm text-xs uppercase flex items-center justify-center cursor-pointer"><span class="material-symbols-outlined text-sm">arrow_forward</span></button>
                 </div>
             </div>
