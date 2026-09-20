@@ -63,6 +63,7 @@ class SessionState:
     insights: dict = field(default_factory=dict)
     action_plan: dict | None = None
     title: str = ""
+    title_generated: bool = False
 
     def add_exchange(self, user_text: str, assistant_text: str):
         """Add a user/assistant exchange to history."""
@@ -75,6 +76,26 @@ class SessionState:
         # Each turn = 2 messages (user + assistant)
         max_messages = max_turns * 2
         return self.history[-max_messages:]
+
+
+ACTIONABLE_KEYWORDS = (
+    "api", "endpoint", "architecture", "flow", "diagram", "docker", "dockerfile",
+    "db", "database", "schema", "table", "sql", "function", "code", "command",
+    "cli", "terminal", "bug", "error", "exception", "fix", "test", "deploy",
+    "deployment", "task", "todo", "pipeline", "build", "config", "yaml", "yml",
+    "json", "git", "commit", "branch", "pr", "pull request", "refactor", "setup",
+    "install", "implement", "script", "frontend", "backend", "auth", "server",
+    "fastapi", "react", "html", "css", "websocket", "aws", "s3", "cloudfront",
+    "step", "steps", "plan", "how to", "create", "generate", "write", "check", "run"
+)
+
+
+def _is_actionable_exchange(user_text: str, assistant_text: str) -> bool:
+    """Frugal check: determine if exchange contains technical/actionable content."""
+    combined = (user_text + " " + assistant_text).lower()
+    if "`" in combined or "{" in combined or "$" in combined:
+        return True
+    return any(kw in combined for kw in ACTIONABLE_KEYWORDS)
 
 
 class VoicePipeline:
@@ -164,6 +185,11 @@ class VoicePipeline:
         self, user_text: str, assistant_text: str, history: list[dict], session: SessionState, on_meta=None
     ):
         """Asynchronously analyze conversation, generate actionable plan/tasks, and stream to client."""
+        # Frugality gate: skip LLM extraction if exchange is purely conversational
+        if not _is_actionable_exchange(user_text, assistant_text):
+            logger.debug("Skipping action plan extraction: exchange is purely conversational.")
+            return
+
         try:
             plan = await self._agent.extract_action_plan(user_text, assistant_text, history)
             if plan:
@@ -238,21 +264,24 @@ class VoicePipeline:
         # ── Step 4: Update session history and save ──
         session.add_exchange(user_text, full_response.strip())
         
-        # Generate dynamic cool name/title in background if not already customized
-        if not session.title or session.title == "Seeking Clarity" or session.title.startswith("Shift "):
-            try:
-                title = await self._llm.generate_session_title(session.history)
-                session.title = title
-            except Exception as e:
-                logger.error(f"Failed to generate session title: {e}")
-                session.title = f"Shift {session_id[:6].upper()}"
+        # Frugal title generation: only once per session after 2+ messages
+        if len(session.history) >= 2 and not session.title_generated:
+            if not session.title or session.title in ("Seeking Clarity", "") or session.title.startswith("Shift "):
+                session.title_generated = True
+                try:
+                    title = await self._llm.generate_session_title(session.history)
+                    session.title = title
+                except Exception as e:
+                    logger.error(f"Failed to generate session title: {e}")
+                    session.title = f"Shift {session_id[:6].upper()}"
                 
         task = asyncio.create_task(self._storage.save_history(session_id, session.history, session.title))
         task.add_done_callback(_bg_task_done)
         
-        # Trigger background synthesis of insights
-        task = asyncio.create_task(self._update_insights_background("default", session.history, session, on_meta))
-        task.add_done_callback(_bg_task_done)
+        # Frugal insights update: only run once every 6 turns to conserve TPM/RPM
+        if len(session.history) >= 4 and len(session.history) % 6 == 0:
+            task = asyncio.create_task(self._update_insights_background("default", session.history, session, on_meta))
+            task.add_done_callback(_bg_task_done)
 
         # Trigger background synthesis of agentic action plan
         task = asyncio.create_task(self._update_action_plan_background(user_text, full_response.strip(), session.history, session, on_meta))
@@ -317,21 +346,24 @@ class VoicePipeline:
 
         session.add_exchange(user_text, full_response.strip())
         
-        # Generate dynamic cool name/title in background if not already customized
-        if not session.title or session.title == "Seeking Clarity" or session.title.startswith("Shift "):
-            try:
-                title = await self._llm.generate_session_title(session.history)
-                session.title = title
-            except Exception as e:
-                logger.error(f"Failed to generate session title: {e}")
-                session.title = f"Shift {session_id[:6].upper()}"
+        # Frugal title generation: only once per session after 2+ messages
+        if len(session.history) >= 2 and not session.title_generated:
+            if not session.title or session.title in ("Seeking Clarity", "") or session.title.startswith("Shift "):
+                session.title_generated = True
+                try:
+                    title = await self._llm.generate_session_title(session.history)
+                    session.title = title
+                except Exception as e:
+                    logger.error(f"Failed to generate session title: {e}")
+                    session.title = f"Shift {session_id[:6].upper()}"
                 
         task = asyncio.create_task(self._storage.save_history(session_id, session.history, session.title))
         task.add_done_callback(_bg_task_done)
         
-        # Trigger background synthesis of insights
-        task = asyncio.create_task(self._update_insights_background("default", session.history, session, on_meta))
-        task.add_done_callback(_bg_task_done)
+        # Frugal insights update: only run once every 6 turns to conserve TPM/RPM
+        if len(session.history) >= 4 and len(session.history) % 6 == 0:
+            task = asyncio.create_task(self._update_insights_background("default", session.history, session, on_meta))
+            task.add_done_callback(_bg_task_done)
 
         # Trigger background synthesis of agentic action plan
         task = asyncio.create_task(self._update_action_plan_background(user_text, full_response.strip(), session.history, session, on_meta))

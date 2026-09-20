@@ -36,7 +36,7 @@ class AgentActionExtractor:
             recent_exchanges = f"USER: {user_text}\nASSISTANT: {assistant_text}"
 
         prompt = f"""You are the agentic execution parser for vāk, a high-agency technical thinking and execution partner.
-Based on the conversation below, extract or construct a concrete, structured ACTION PLAN that gets real work done.
+Based on the conversation below, extract or construct a concrete, structured ACTION PLAN that gets real work done in the developer's browser workbench.
 
 CONVERSATION:
 {recent_exchanges}
@@ -47,12 +47,14 @@ ASSISTANT: {assistant_text}
 
 Analyze the user's intent, the technical requirements, and the assistant's recommendation.
 Generate a structured JSON object with:
-1. "title": A punchy, concrete action title (max 5 words, e.g. "CloudFront WebSocket Configuration", "FastAPI CORS Setup", "Docker Build Pipeline").
+1. "title": A punchy, concrete action title (max 5 words, e.g. "CloudFront WebSocket Setup", "FastAPI CORS Config", "Docker Build Pipeline").
 2. "objective": A 1-sentence technical objective.
 3. "tasks": 2-4 concrete, actionable checklist steps with "id" (e.g. "t1"), "text", "priority" ("high", "medium", "normal"), and "status" ("pending").
-4. "commands": 1-3 practical shell/bash commands that test, build, or verify the work (e.g. curl, git, docker, npm, python). If none apply, provide an empty list [].
-5. "code_snippet": Optional dict with "filename", "language", and "code" containing relevant snippet or configuration. If not applicable, set to null.
-6. "notes": 1-2 sentence architectural rationale or constraint to remember.
+4. "commands": 1-3 practical shell/bash commands (e.g. curl, git, docker, npm, python). If none apply, provide an empty list [].
+5. "code_snippet": Optional dict with "filename" (e.g. "docker-compose.yml", "schema.sql", "main.py"), "language", and "code". If not applicable, set to null.
+6. "diagram": Optional Mermaid diagram string (e.g. "graph TD\\n  A[\"Client\"] -->|WebSocket| B[\"FastAPI Server\"]\\n  B --> C[\"Postgres DB\"]") IF the exchange discusses architecture, system design, components, data flow, or topology. All node labels MUST be wrapped in double quotes inside brackets (e.g. NodeId[\"Label (details)\"]) to prevent syntax errors. If not applicable, set to null.
+7. "api_endpoint": Optional dict with {{"method": "GET"|"POST"|"PUT"|"DELETE", "url": "...", "headers": {{"Content-Type": "application/json"}}, "body": "..."}} IF the exchange discusses or debugs an API route or webhook. If not applicable, set to null.
+8. "notes": 1-2 sentence architectural rationale or constraint to remember.
 
 Return ONLY a valid JSON object matching this schema:
 {{
@@ -63,6 +65,8 @@ Return ONLY a valid JSON object matching this schema:
   ],
   "commands": ["..."],
   "code_snippet": {{"filename": "...", "language": "...", "code": "..."}},
+  "diagram": "graph TD\\n...",
+  "api_endpoint": {{"method": "GET", "url": "...", "headers": {{}}, "body": null}},
   "notes": "..."
 }}
 

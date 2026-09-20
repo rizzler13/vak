@@ -5,6 +5,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>VĀK - The Conversation That Shifts It</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -391,6 +392,62 @@
                 </div>
             </div>
         </section>
+
+        <!-- Browser Execution Workbench Showcase -->
+        <section class="w-full pb-14">
+            <div class="flex justify-between items-center mb-4">
+                <span class="font-label-mono-xs text-label-mono-xs text-electric-blue tracking-widest uppercase">// 02 — BROWSER EXECUTION WORKBENCH</span>
+                <span class="font-label-mono-xs text-[9px] text-status-green uppercase font-mono flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-status-green"></span> ZERO TOKEN OVERHEAD
+                </span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                <div class="p-5 border border-white/10 bg-black/80 flex flex-col justify-between hover:border-electric-blue/50 transition-colors">
+                    <div>
+                        <div class="text-electric-blue text-[11px] font-mono mb-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[13px]">schema</span>
+                            // 01_TOPOLOGY
+                        </div>
+                        <h4 class="font-stat-lg text-sm text-white uppercase mb-1">Architecture Diagrams</h4>
+                        <p class="text-[11px] text-white/60 leading-relaxed">Auto-generates dark-mode Mermaid flowcharts & topology graphs from spoken system designs.</p>
+                    </div>
+                    <div class="mt-4 text-[9px] font-mono text-green-400">STATUS: NATIVE BROWSER</div>
+                </div>
+                <div class="p-5 border border-white/10 bg-black/80 flex flex-col justify-between hover:border-electric-blue/50 transition-colors">
+                    <div>
+                        <div class="text-electric-blue text-[11px] font-mono mb-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[13px]">send</span>
+                            // 02_HTTP_RUNNER
+                        </div>
+                        <h4 class="font-stat-lg text-sm text-white uppercase mb-1">In-Browser API Tester</h4>
+                        <p class="text-[11px] text-white/60 leading-relaxed">Mini-Postman running natively in browser. Test REST & webhook routes with live latency inspection.</p>
+                    </div>
+                    <div class="mt-4 text-[9px] font-mono text-green-400">STATUS: NATIVE BROWSER</div>
+                </div>
+                <div class="p-5 border border-white/10 bg-black/80 flex flex-col justify-between hover:border-electric-blue/50 transition-colors">
+                    <div>
+                        <div class="text-electric-blue text-[11px] font-mono mb-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[13px]">download</span>
+                            // 03_NATIVE_FILES
+                        </div>
+                        <h4 class="font-stat-lg text-sm text-white uppercase mb-1">1-Click File Downloads</h4>
+                        <p class="text-[11px] text-white/60 leading-relaxed">Instant browser download of generated Dockerfiles, .env files, SQL schemas, and config files.</p>
+                    </div>
+                    <div class="mt-4 text-[9px] font-mono text-green-400">STATUS: NATIVE BROWSER</div>
+                </div>
+                <div class="p-5 border border-white/10 bg-black/80 flex flex-col justify-between hover:border-electric-blue/50 transition-colors">
+                    <div>
+                        <div class="text-electric-blue text-[11px] font-mono mb-2 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[13px]">description</span>
+                            // 04_EXPORTERS
+                        </div>
+                        <h4 class="font-stat-lg text-sm text-white uppercase mb-1">ADR & GitHub Exporters</h4>
+                        <p class="text-[11px] text-white/60 leading-relaxed">Export decisions into ADR-001.md, format GitHub issue templates, or copy concise Slack team briefs.</p>
+                    </div>
+                    <div class="mt-4 text-[9px] font-mono text-green-400">STATUS: NATIVE BROWSER</div>
+                </div>
+            </div>
+        </section>
     </div>
 
     <!-- ─────────────────────────────────────────────
@@ -634,11 +691,38 @@
                             <span>ACTION DECK</span>
                             <span id="action-task-count" class="px-1.5 py-0.5 bg-electric-blue/20 text-electric-blue rounded text-[8px] font-semibold hidden">0</span>
                         </button>
+                        <button id="tab-vault-btn" class="font-label-mono-xs uppercase tracking-wider text-[10px] px-2 py-1 text-white/50 hover:text-white border-b-2 border-transparent transition-colors flex items-center gap-1.5 cursor-pointer" title="All generated deliverables and work products">
+                            <span class="material-symbols-outlined text-[12px]">inventory_2</span>
+                            <span>WORK DONE</span>
+                            <span id="vault-items-count" class="px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded text-[8px] font-semibold hidden">0</span>
+                        </button>
                     </div>
-                    <button id="export-plan-btn" class="font-label-mono-xs text-[9px] text-white/40 hover:text-electric-blue flex items-center gap-1 transition-colors cursor-pointer hidden" title="Export Markdown Work Plan">
-                        <span class="material-symbols-outlined text-[12px]">content_copy</span>
-                        <span id="export-btn-label">EXPORT PLAN</span>
-                    </button>
+                    <div class="flex items-center gap-1.5">
+                        <button id="deck-back-header-btn" onclick="resetActionDeckToOverview()" class="font-label-mono-xs text-[9px] text-white/60 hover:text-white border border-white/20 hover:border-electric-blue px-2 py-0.5 uppercase flex items-center gap-1 transition-colors cursor-pointer hidden" title="Back to Workbench Capabilities Overview">
+                            <span class="material-symbols-outlined text-[12px]">arrow_back</span>
+                            <span>OVERVIEW</span>
+                        </button>
+                        <button id="deck-resume-header-btn" onclick="resumeLatestActionPlan()" class="font-label-mono-xs text-[9px] text-electric-blue hover:text-white border border-electric-blue/40 hover:border-electric-blue px-2 py-0.5 uppercase flex items-center gap-1 transition-colors cursor-pointer hidden" title="Resume current deliverable in Action Deck">
+                            <span class="material-symbols-outlined text-[12px]">play_arrow</span>
+                            <span>CURRENT WORK</span>
+                        </button>
+                        <button id="export-plan-btn" class="font-label-mono-xs text-[9px] text-white/40 hover:text-electric-blue flex items-center gap-1 transition-colors cursor-pointer hidden" title="Export Markdown Work Plan">
+                            <span class="material-symbols-outlined text-[12px]">content_copy</span>
+                            <span id="export-btn-label">PLAN</span>
+                        </button>
+                        <button id="export-github-btn" class="font-label-mono-xs text-[9px] text-white/40 hover:text-electric-blue flex items-center gap-1 transition-colors cursor-pointer hidden" title="Export as GitHub Issue">
+                            <span class="material-symbols-outlined text-[12px]">terminal</span>
+                            <span>ISSUE</span>
+                        </button>
+                        <button id="export-adr-btn" class="font-label-mono-xs text-[9px] text-white/40 hover:text-electric-blue flex items-center gap-1 transition-colors cursor-pointer hidden" title="Download Architecture Decision Record">
+                            <span class="material-symbols-outlined text-[12px]">description</span>
+                            <span>ADR</span>
+                        </button>
+                        <button id="export-slack-btn" class="font-label-mono-xs text-[9px] text-white/40 hover:text-electric-blue flex items-center gap-1 transition-colors cursor-pointer hidden" title="Copy Team Brief">
+                            <span class="material-symbols-outlined text-[12px]">chat</span>
+                            <span>BRIEF</span>
+                        </button>
+                    </div>
                 </div>
                 
                 <!-- Dialogue View -->
@@ -648,19 +732,119 @@
 
                 <!-- Agentic Action Deck View -->
                 <div id="action-deck-area" class="flex-grow overflow-y-auto pr-2 flex-col gap-3 font-label-mono-xs text-xs pb-4 hidden">
-                    <div id="action-deck-empty" class="text-white/40 font-label-mono-xs uppercase tracking-widest text-center mt-12 select-none">
-                        <div>// NO ACTIVE WORK ORDER</div>
-                        <p class="text-[9px] text-white/30 mt-2 normal-case tracking-normal">Discuss an architecture, task, or problem — Vāk will automatically synthesize actionable deliverables, checklists, and commands.</p>
+                    <div id="action-deck-empty" class="p-3.5 border border-white/10 bg-black/50 space-y-3">
+                        <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                            <span class="font-label-mono-xs text-[9px] uppercase tracking-widest text-electric-blue font-bold flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-status-green"></span>
+                                // BROWSER WORKBENCH — ACTIVE CAPABILITIES
+                            </span>
+                            <span class="px-1.5 py-0.5 bg-green-500/10 text-green-400 text-[8px] uppercase border border-green-500/20">READY</span>
+                        </div>
+                        <p class="text-[10px] text-white/70 leading-relaxed">
+                            As you speak or type, Vāk translates technical thoughts into live browser-executable deliverables with zero token overhead:
+                        </p>
+
+                        <!-- Saved & Active Deliverables Banner in Action Deck Overview -->
+                        <div id="overview-recent-deliverables" class="hidden border border-electric-blue/40 bg-electric-blue/5 p-3 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] uppercase tracking-wider text-white font-mono font-bold flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[14px] text-electric-blue">inventory_2</span>
+                                    <span>// ACTIVE WORK PRODUCTS &amp; DELIVERABLES</span>
+                                </span>
+                                <button onclick="switchTab('vault')" class="px-2 py-0.5 bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-black transition-colors text-[8px] uppercase font-mono font-bold cursor-pointer flex items-center gap-1">
+                                    <span>OPEN ALL IN WORK DONE</span>
+                                    <span class="material-symbols-outlined text-[10px]">arrow_forward</span>
+                                </button>
+                            </div>
+                            <div id="overview-recent-deliverables-list" class="space-y-2"></div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10px]">
+                            <!-- Capability 1 -->
+                            <div class="p-2.5 bg-black/80 border border-white/10 hover:border-electric-blue/40 transition-colors">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-electric-blue font-mono font-bold flex items-center gap-1 text-[10px]">
+                                        <span class="material-symbols-outlined text-[13px]">schema</span>
+                                        Topology Visualizer
+                                    </span>
+                                    <button onclick="loadDemoDiagram()" class="text-[8px] text-white/50 hover:text-white uppercase font-mono underline cursor-pointer">TRY DEMO</button>
+                                </div>
+                                <p class="text-white/50 text-[9px] leading-snug">Auto-generates dark-mode Mermaid flowcharts as you discuss systems.</p>
+                            </div>
+
+                            <!-- Capability 2 -->
+                            <div class="p-2.5 bg-black/80 border border-white/10 hover:border-electric-blue/40 transition-colors">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-electric-blue font-mono font-bold flex items-center gap-1 text-[10px]">
+                                        <span class="material-symbols-outlined text-[13px]">send</span>
+                                        In-Browser API Tester
+                                    </span>
+                                    <button onclick="loadDemoApiTest()" class="text-[8px] text-white/50 hover:text-white uppercase font-mono underline cursor-pointer">TRY DEMO</button>
+                                </div>
+                                <p class="text-white/50 text-[9px] leading-snug">Mini-Postman running natively in browser. Test endpoints with live latency.</p>
+                            </div>
+
+                            <!-- Capability 3 -->
+                            <div class="p-2.5 bg-black/80 border border-white/10 hover:border-electric-blue/40 transition-colors">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-electric-blue font-mono font-bold flex items-center gap-1 text-[10px]">
+                                        <span class="material-symbols-outlined text-[13px]">download</span>
+                                        Drop-in File Generator
+                                    </span>
+                                    <span class="text-[7px] text-green-400 font-mono">1-CLICK</span>
+                                </div>
+                                <p class="text-white/50 text-[9px] leading-snug">Download generated Dockerfiles, .env, SQL schemas straight to disk.</p>
+                            </div>
+
+                            <!-- Capability 4 -->
+                            <div class="p-2.5 bg-black/80 border border-white/10 hover:border-electric-blue/40 transition-colors">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-electric-blue font-mono font-bold flex items-center gap-1 text-[10px]">
+                                        <span class="material-symbols-outlined text-[13px]">description</span>
+                                        ADR & GitHub Exporters
+                                    </span>
+                                    <span class="text-[7px] text-white/40 font-mono">STANDARDS</span>
+                                </div>
+                                <p class="text-white/50 text-[9px] leading-snug">Export decisions to ADR-001.md, GitHub Issues, or Slack updates.</p>
+                            </div>
+                        </div>
+
+                        <div class="p-2 bg-electric-blue/5 border border-electric-blue/20 text-[9px] text-white/70 flex items-center justify-between">
+                            <span>💡 Tap mic or use quick action chips below to activate any capability.</span>
+                            <span class="text-electric-blue font-mono uppercase font-bold text-[8px]">ACTIVE LISTENER</span>
+                        </div>
+
+
                     </div>
                     <div id="action-deck-content" class="space-y-4 hidden">
                         <!-- Action Plan Title & Objective -->
                         <div class="border border-electric-blue/30 bg-electric-blue/5 p-3">
                             <div class="flex items-center justify-between">
                                 <span class="font-label-mono-xs text-[8px] uppercase tracking-widest text-electric-blue font-bold">// WORK_ORDER</span>
-                                <span id="action-plan-badge" class="px-1.5 py-0.5 bg-electric-blue/20 text-electric-blue text-[8px] uppercase">READY</span>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="resetActionDeckToOverview()" class="text-[9px] text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/20 px-2 py-0.5 uppercase tracking-wider transition-colors cursor-pointer flex items-center gap-1" title="Exit demo and return to Workbench overview">
+                                        <span class="material-symbols-outlined text-[12px]">arrow_back</span>
+                                        <span>BACK TO OVERVIEW</span>
+                                    </button>
+                                    <span id="action-plan-badge" class="px-1.5 py-0.5 bg-electric-blue/20 text-electric-blue text-[8px] uppercase">READY</span>
+                                </div>
                             </div>
                             <h4 id="action-plan-title" class="font-stat-lg text-sm text-white uppercase tracking-wider mt-1">PLAN TITLE</h4>
                             <p id="action-plan-objective" class="text-[10px] text-white/70 mt-1 leading-relaxed">Objective description</p>
+                        </div>
+
+                        <!-- Architecture Diagram Visualizer (Mermaid.js) -->
+                        <div id="action-diagram-container" class="border border-white/10 p-3 bg-black/60 hidden">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-slate-gray uppercase text-[9px] tracking-wider flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[13px] text-electric-blue">schema</span>
+                                    // ARCHITECTURE VISUALIZER
+                                </span>
+                                <div class="flex items-center gap-2">
+                                    <button id="copy-mermaid-btn" class="text-white/40 hover:text-electric-blue text-[8px] uppercase tracking-wider cursor-pointer">COPY MERMAID</button>
+                                </div>
+                            </div>
+                            <div id="action-diagram-render" class="bg-black/90 border border-white/5 p-3 overflow-x-auto flex justify-center min-h-[100px] text-white"></div>
                         </div>
 
                         <!-- Task Checklist -->
@@ -682,11 +866,50 @@
                             </div>
                         </div>
 
+                        <!-- In-Browser API & Endpoint Tester -->
+                        <div id="action-api-container" class="border border-white/10 p-3 bg-black/60 hidden">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-slate-gray uppercase text-[9px] tracking-wider flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[13px] text-electric-blue">send</span>
+                                    // IN-BROWSER API TESTER
+                                </span>
+                                <span id="api-test-badge" class="px-1.5 py-0.5 border border-white/10 text-[8px] text-white/50 uppercase">STANDBY</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex gap-1.5">
+                                    <select id="api-test-method" class="bg-black border border-white/20 text-electric-blue text-[10px] font-mono px-2 py-1 focus:outline-none">
+                                        <option value="GET">GET</option>
+                                        <option value="POST">POST</option>
+                                        <option value="PUT">PUT</option>
+                                        <option value="DELETE">DELETE</option>
+                                    </select>
+                                    <input type="text" id="api-test-url" placeholder="https://api.example.com/v1/..." class="flex-grow bg-black border border-white/20 text-white text-[10px] font-mono px-2.5 py-1 focus:outline-none focus:border-electric-blue" />
+                                    <button id="api-test-send-btn" class="bg-electric-blue hover:bg-electric-blue/80 text-white text-[9px] uppercase px-3 py-1 font-mono tracking-wider cursor-pointer font-bold">TEST</button>
+                                </div>
+                                <div id="api-test-body-container" class="hidden">
+                                    <textarea id="api-test-body" rows="2" placeholder='{"key": "value"}' class="w-full bg-black border border-white/10 text-green-400 text-[10px] font-mono p-1.5 focus:outline-none"></textarea>
+                                </div>
+                                <div id="api-test-response-drawer" class="hidden border-t border-white/10 pt-2 mt-2">
+                                    <div class="flex justify-between items-center text-[9px] text-white/50 font-mono mb-1">
+                                        <span id="api-test-status">STATUS: --</span>
+                                        <span id="api-test-time">-- ms</span>
+                                    </div>
+                                    <pre id="api-test-response-body" class="bg-black p-2 border border-white/5 text-[9px] font-mono text-white/80 max-h-32 overflow-y-auto select-all"></pre>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Code Blueprint -->
                         <div id="action-code-container" class="border border-white/10 p-3 bg-black/40 hidden">
                             <div class="flex justify-between items-center mb-1.5">
                                 <span id="action-code-filename" class="text-slate-gray uppercase text-[9px] tracking-wider">// CODE BLUEPRINT</span>
-                                <button id="copy-code-btn" class="text-electric-blue hover:underline text-[9px] cursor-pointer">COPY CODE</button>
+                                <div class="flex items-center gap-2">
+                                    <button id="download-code-btn" class="text-green-400 hover:underline text-[9px] uppercase tracking-wider cursor-pointer flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[12px]">download</span>
+                                        <span>DOWNLOAD FILE</span>
+                                    </button>
+                                    <button id="copy-code-btn" class="text-electric-blue hover:underline text-[9px] uppercase tracking-wider cursor-pointer">COPY CODE</button>
+                                </div>
                             </div>
                             <pre id="action-code-block" class="bg-black border border-white/5 p-2.5 text-[10px] text-green-400 font-mono overflow-x-auto max-h-40 select-all"></pre>
                         </div>
@@ -698,11 +921,36 @@
                     </div>
                 </div>
 
+                <!-- Work Done / Deliverables Vault View -->
+                <div id="vault-area" class="flex-grow overflow-y-auto pr-2 flex-col gap-3 font-label-mono-xs text-xs pb-4 hidden">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-2 mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-green-400 text-sm">inventory_2</span>
+                            <span class="font-label-mono-xs text-[10px] uppercase tracking-widest text-white font-bold">// WORK DONE — SESSION DELIVERABLES</span>
+                        </div>
+                        <span id="vault-count-badge" class="px-1.5 py-0.5 bg-green-500/10 text-green-400 text-[8px] uppercase border border-green-500/20 font-mono">0 ARTIFACTS</span>
+                    </div>
+
+                    <!-- Empty State for Vault -->
+                    <div id="vault-empty" class="p-8 border border-white/10 bg-black/40 text-center space-y-2">
+                        <span class="material-symbols-outlined text-white/30 text-3xl">inventory_2</span>
+                        <div class="text-white/60 text-xs uppercase tracking-wider font-mono">No deliverables saved yet</div>
+                        <p class="text-white/40 text-[10px] max-w-sm mx-auto">As Vāk generates architecture diagrams, code blueprints, API tests, and checklists, they are automatically stored here so you never lose your work.</p>
+                    </div>
+
+                    <!-- Deliverables List Grid -->
+                    <div id="vault-list" class="space-y-3 hidden">
+                        <!-- Cards injected here dynamically -->
+                    </div>
+                </div>
+
                 <!-- Quick Action Chips -->
                 <div class="flex items-center gap-1.5 overflow-x-auto py-1.5 border-t border-white/5 flex-shrink-0 no-scrollbar">
-                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Design the high-level architecture and component layout for this.">⚡ Architecture</button>
+                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Design the architecture diagram and component topology for this.">⚡ Architecture Graph</button>
+                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Help me test this API endpoint and inspect response payload.">🧪 Test Endpoint</button>
                     <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Break this down into an actionable step-by-step task checklist.">📋 Task Checklist</button>
-                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Generate the terminal commands and setup scripts for this.">💻 CLI Script</button>
+                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Generate the configuration file or code blueprint for this with filename.">💾 Scaffold File</button>
+                    <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Document this technical decision as an Architecture Decision Record (ADR).">📄 Export ADR</button>
                     <button class="quick-chip font-label-mono-xs text-[8px] uppercase border border-white/10 hover:border-electric-blue text-white/50 hover:text-white px-2 py-1 whitespace-nowrap transition-colors cursor-pointer" data-prompt="Analyze the root cause and isolate the failure point.">🔍 Root Cause</button>
                 </div>
 

@@ -96,19 +96,20 @@ class KokoroTTS(TTSEngine):
                 logger.info(f"  Saved to {path}")
 
     async def synthesize(self, text: str) -> bytes:
-        """Synthesize text to WAV bytes."""
+        """Synthesize text to WAV bytes without blocking the asyncio event loop."""
+        import asyncio
+
         t_start = time.perf_counter()
 
-        # Kokoro returns (samples, sample_rate)
-        samples, sample_rate = self._kokoro.create(
-            text, voice=self._voice, speed=1.0, lang="en-us"
-        )
+        def _generate():
+            samples, sample_rate = self._kokoro.create(
+                text, voice=self._voice, speed=1.0, lang="en-us"
+            )
+            wav_buffer = io.BytesIO()
+            sf.write(wav_buffer, samples, sample_rate, format="WAV", subtype="PCM_16")
+            return wav_buffer.getvalue()
 
-        # Convert to WAV bytes
-        wav_buffer = io.BytesIO()
-        sf.write(wav_buffer, samples, sample_rate, format="WAV", subtype="PCM_16")
-        wav_bytes = wav_buffer.getvalue()
-
+        wav_bytes = await asyncio.to_thread(_generate)
         elapsed = (time.perf_counter() - t_start) * 1000
         logger.info(f"Kokoro TTS: {elapsed:.0f}ms for {len(text)} chars")
 
@@ -135,16 +136,18 @@ class CartesiaTTS(TTSEngine):
         """Synthesize text via Cartesia API, return WAV bytes."""
         t_start = time.perf_counter()
 
-        audio_data = await self._client.tts.bytes(
-            model_id=self._model_id,
+        model_id = self._model_id if self._model_id in ("sonic-2", "sonic-preview") else "sonic-2"
+        res = await self._client.tts.generate(
+            model_id=model_id,
             transcript=text,
-            voice_id=self._voice_id,
+            voice={"mode": "id", "id": self._voice_id},
             output_format={
                 "container": "wav",
                 "encoding": "pcm_s16le",
                 "sample_rate": 24000,
             },
         )
+        audio_data = await res.read()
 
         elapsed = (time.perf_counter() - t_start) * 1000
         logger.info(f"Cartesia TTS: {elapsed:.0f}ms for {len(text)} chars")
@@ -154,14 +157,18 @@ class CartesiaTTS(TTSEngine):
 
 def get_tts_engine() -> TTSEngine:
     """Factory: return the appropriate TTS engine based on config."""
+    # Prioritize Cartesia for ultra-low latency voice (~400ms) if API key is provided
+    if settings.cartesia_api_key:
+        try:
+            return CartesiaTTS()
+        except Exception as e:
+            logger.warning(f"CartesiaTTS init failed ({e}), falling back to local Kokoro")
+
     if settings.use_local_tts:
         try:
             return KokoroTTS()
         except Exception as e:
             logger.warning(f"KokoroTTS failed ({e}), trying Cartesia")
-
-    if settings.cartesia_api_key:
-        return CartesiaTTS()
 
     # Fallback to local
     return KokoroTTS()

@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     use_local_tts: bool = True  # Kokoro by default (free)
     kokoro_voice: str = "af_heart"  # Kokoro voice preset
     cartesia_voice_id: str = "a0e99841-438c-4a64-b679-ae501e7d6091"  # Cartesia voice
-    cartesia_model_id: str = "sonic"
+    cartesia_model_id: str = "sonic-2"
 
     # --- LLM ---
     groq_model: str = "qwen/qwen3.8-27b"
