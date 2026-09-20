@@ -1874,19 +1874,31 @@ if (apiTestSendBtn) {
                 const res = await fetch(url, fetchOptions);
                 const duration = Math.round(performance.now() - tStart);
                 let rawText = await res.text();
-                let formattedText = rawText;
-                try {
-                    const jsonObj = JSON.parse(rawText);
-                    formattedText = JSON.stringify(jsonObj, null, 2);
-                } catch (_) {}
+                const contentType = res.headers.get('content-type') || '';
+                const { isHtml, text: parsedText } = extractSmartSummary(rawText, contentType);
+
+                // Extract response headers
+                const respHeaders = {};
+                res.headers.forEach((val, key) => { respHeaders[key] = val; });
+
+                currentApiTestResult = {
+                    body: rawText,
+                    parsedText: parsedText,
+                    headers: respHeaders,
+                    isHtml: isHtml
+                };
+
+                const rawSizeEl = document.getElementById('api-test-raw-size');
+                if (rawSizeEl) rawSizeEl.textContent = `${Math.round(rawText.length / 1024)} KB`;
 
                 if (apiTestResponseDrawer) apiTestResponseDrawer.classList.remove('hidden');
                 if (apiTestStatus) {
                     apiTestStatus.textContent = `STATUS: ${res.status} ${res.statusText || ''}`;
-                    apiTestStatus.className = res.ok ? 'text-green-400' : 'text-red-400';
+                    apiTestStatus.className = res.ok ? 'text-green-400 font-bold' : 'text-red-400 font-bold';
                 }
                 if (apiTestTime) apiTestTime.textContent = `${duration} ms`;
-                if (apiTestResponseBody) apiTestResponseBody.textContent = formattedText || '(empty response)';
+                setApiTestViewTab(isHtml ? 'parsed' : 'parsed');
+
                 if (apiTestBadge) {
                     apiTestBadge.textContent = res.ok ? `${res.status} OK` : `HTTP ${res.status}`;
                     apiTestBadge.className = `px-1.5 py-0.5 ${res.ok ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'} text-[8px] uppercase`;
@@ -1928,36 +1940,55 @@ if (apiTestSendBtn) {
                 }
 
                 if (data.ok) {
+                    const { isHtml, text: parsedText } = extractSmartSummary(data.body || '', data.content_type || '');
+                    currentApiTestResult = {
+                        body: data.body || '',
+                        parsedText: parsedText,
+                        headers: data.headers || {},
+                        isHtml: isHtml
+                    };
+
+                    const rawSizeEl = document.getElementById('api-test-raw-size');
+                    if (rawSizeEl) rawSizeEl.textContent = `${Math.round((data.body || '').length / 1024)} KB`;
+
                     if (apiTestStatus) {
                         apiTestStatus.textContent = `STATUS: ${data.status} ${data.status_text || 'OK'}`;
-                        apiTestStatus.className = 'text-green-400';
+                        apiTestStatus.className = 'text-green-400 font-bold';
                     }
                     if (apiTestTime) apiTestTime.textContent = `${data.duration_ms || duration} ms`;
-                    if (apiTestResponseBody) apiTestResponseBody.textContent = data.body || '(empty response)';
+                    setApiTestViewTab('parsed');
+
                     if (apiTestBadge) {
                         apiTestBadge.textContent = `${data.status} OK (PROXIED)`;
                         apiTestBadge.className = 'px-1.5 py-0.5 bg-green-500/20 text-green-400 text-[8px] uppercase';
                     }
                 } else {
                     // Graceful failure diagnosis
+                    let diag = `// ── PROXY EXECUTION DIAGNOSTIC ──\n`;
+                    diag += `Target URL : ${data.target_url || url}\n`;
+                    diag += `Status     : ${data.status || 502} (${data.status_text || 'FAILED'})\n`;
+                    diag += `Issue      : ${data.error_type || 'REQUEST_FAILED'}\n`;
+                    diag += `Detail     : ${data.message || 'Remote host did not return a valid response.'}\n\n`;
+                    if (data.body) {
+                        diag += `Server Response:\n${data.body}`;
+                    } else {
+                        diag += `Recommendation: Check that the domain is public, online, and accepts incoming ${method} requests.`;
+                    }
+
+                    currentApiTestResult = {
+                        body: data.body || diag,
+                        parsedText: diag,
+                        headers: data.headers || {},
+                        isHtml: false
+                    };
+
                     if (apiTestStatus) {
                         apiTestStatus.textContent = `STATUS: ${data.status || 502} ${data.status_text || 'ERROR'}`;
-                        apiTestStatus.className = 'text-red-400';
+                        apiTestStatus.className = 'text-red-400 font-bold';
                     }
                     if (apiTestTime) apiTestTime.textContent = `${data.duration_ms || duration} ms`;
-                    if (apiTestResponseBody) {
-                        let diag = `// ── PROXY EXECUTION DIAGNOSTIC ──\n`;
-                        diag += `Target URL : ${data.target_url || url}\n`;
-                        diag += `Status     : ${data.status || 502} (${data.status_text || 'FAILED'})\n`;
-                        diag += `Issue      : ${data.error_type || 'REQUEST_FAILED'}\n`;
-                        diag += `Detail     : ${data.message || 'Remote host did not return a valid response.'}\n\n`;
-                        if (data.body) {
-                            diag += `Server Response:\n${data.body}`;
-                        } else {
-                            diag += `Recommendation: Check that the domain is public, online, and accepts incoming ${method} requests.`;
-                        }
-                        apiTestResponseBody.textContent = diag;
-                    }
+                    setApiTestViewTab('parsed');
+
                     if (apiTestBadge) {
                         apiTestBadge.textContent = `${data.status || 502} ${data.status_text || 'ERROR'}`;
                         apiTestBadge.className = 'px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[8px] uppercase';
@@ -1968,12 +1999,12 @@ if (apiTestSendBtn) {
                 if (apiTestResponseDrawer) apiTestResponseDrawer.classList.remove('hidden');
                 if (apiTestStatus) {
                     apiTestStatus.textContent = 'GATEWAY UNREACHABLE';
-                    apiTestStatus.className = 'text-red-400';
+                    apiTestStatus.className = 'text-red-400 font-bold';
                 }
                 if (apiTestTime) apiTestTime.textContent = `${duration} ms`;
-                if (apiTestResponseBody) {
-                    apiTestResponseBody.textContent = `// VĀK BACKEND PROXY ERROR\nCould not reach the Vāk backend proxy to relay this request.\nDetail: ${proxyErr.message}\nEnsure the backend server is running and accessible.`;
-                }
+                const errDiag = `// VĀK BACKEND PROXY ERROR\nCould not reach the Vāk backend proxy to relay this request.\nDetail: ${proxyErr.message}\nEnsure the backend server is running and accessible.`;
+                currentApiTestResult = { body: errDiag, parsedText: errDiag, headers: {}, isHtml: false };
+                setApiTestViewTab('parsed');
                 if (apiTestBadge) {
                     apiTestBadge.textContent = 'GATEWAY ERR';
                     apiTestBadge.className = 'px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[8px] uppercase';

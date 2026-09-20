@@ -912,17 +912,23 @@
                                     <textarea id="api-test-body" rows="2" placeholder='{"key": "value"}' class="w-full bg-black border border-white/10 text-green-400 text-[10px] font-mono p-1.5 focus:outline-none"></textarea>
                                 </div>
                                 <div id="api-test-response-drawer" class="hidden border-t border-white/10 pt-2 mt-2">
-                                    <div class="flex justify-between items-center text-[9px] font-mono mb-1">
+                                    <div class="flex justify-between items-center text-[9px] font-mono mb-1.5">
                                         <div class="flex items-center gap-2">
-                                            <span id="api-test-status" class="text-white/60">STATUS: --</span>
+                                            <span id="api-test-status" class="text-white/60 font-bold">STATUS: --</span>
                                             <span id="api-test-route-info" class="text-[8px] text-electric-blue hidden">PROXIED</span>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <span id="api-test-time" class="text-white/50">-- ms</span>
-                                            <button id="api-test-copy-btn" class="text-electric-blue hover:underline uppercase text-[8px] cursor-pointer">COPY</button>
+                                            <button id="api-test-copy-btn" class="text-electric-blue hover:underline uppercase text-[8px] cursor-pointer font-bold">COPY</button>
                                         </div>
                                     </div>
-                                    <pre id="api-test-response-body" class="bg-black p-2 border border-white/5 text-[9px] font-mono text-white/80 max-h-48 overflow-y-auto select-text whitespace-pre-wrap break-all"></pre>
+                                    <!-- View Tabs: Smart Extract / Raw Source / Headers -->
+                                    <div class="flex items-center gap-3 border-b border-white/10 pb-1 mb-1.5 text-[8px] font-mono uppercase">
+                                        <button type="button" id="api-test-tab-parsed" class="text-electric-blue border-b border-electric-blue pb-0.5 cursor-pointer font-bold transition-all">✨ Smart Extract</button>
+                                        <button type="button" id="api-test-tab-raw" class="text-white/40 hover:text-white pb-0.5 cursor-pointer transition-all">📄 Raw (<span id="api-test-raw-size">0 KB</span>)</button>
+                                        <button type="button" id="api-test-tab-headers" class="text-white/40 hover:text-white pb-0.5 cursor-pointer transition-all">📋 Headers</button>
+                                    </div>
+                                    <pre id="api-test-response-body" class="bg-black p-2.5 border border-white/5 text-[9px] font-mono text-white/80 max-h-56 overflow-y-auto select-text whitespace-pre-wrap break-all leading-relaxed"></pre>
                                 </div>
                             </div>
                         </div>
