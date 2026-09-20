@@ -119,17 +119,17 @@ class VoicePipeline:
         self._sessions: dict[str, SessionState] = {}
         self._storage = S3HistoryStore()
 
-    async def get_or_load_session(self, session_id: str) -> SessionState:
+    async def get_or_load_session(self, session_id: str, user_id: str | None = None) -> SessionState:
         """Get the session from memory, or load it from storage if not in memory."""
         if session_id not in self._sessions:
-            history = await self._storage.load_history(session_id)
-            user_id = "default"
-            insights = await self._storage.load_insights(user_id)
+            effective_user = user_id or "default"
+            history = await self._storage.load_history(session_id, user_id=effective_user)
+            insights = await self._storage.load_insights(effective_user)
             
             # Find the title from the listed sessions
             title = ""
             try:
-                sessions = await self._storage.list_sessions()
+                sessions = await self._storage.list_sessions(user_id=effective_user)
                 for s in sessions:
                     if s["session_id"] == session_id:
                         title = s.get("title", "")
@@ -200,7 +200,7 @@ class VoicePipeline:
             logger.error(f"Failed to update action plan in background: {e}", exc_info=True)
 
     async def process(
-        self, audio_bytes: bytes, session_id: str = "default", on_meta=None
+        self, audio_bytes: bytes, session_id: str = "default", on_meta=None, user_id: str | None = None
     ) -> AsyncGenerator[bytes, None]:
         """
         Full pipeline: audio in → audio chunks out.
@@ -209,7 +209,7 @@ class VoicePipeline:
         """
         t_pipeline_start = time.perf_counter()
         metrics = PipelineMetrics()
-        session = await self.get_or_load_session(session_id)
+        session = await self.get_or_load_session(session_id, user_id=user_id)
 
         # ── Step 1: STT ──
         t_stt_start = time.perf_counter()
@@ -275,12 +275,12 @@ class VoicePipeline:
                     logger.error(f"Failed to generate session title: {e}")
                     session.title = f"Shift {session_id[:6].upper()}"
                 
-        task = asyncio.create_task(self._storage.save_history(session_id, session.history, session.title))
+        task = asyncio.create_task(self._storage.save_history(session_id, session.history, session.title, user_id=user_id))
         task.add_done_callback(_bg_task_done)
         
         # Frugal insights update: only run once every 6 turns to conserve TPM/RPM
         if len(session.history) >= 4 and len(session.history) % 6 == 0:
-            task = asyncio.create_task(self._update_insights_background("default", session.history, session, on_meta))
+            task = asyncio.create_task(self._update_insights_background(user_id or "default", session.history, session, on_meta))
             task.add_done_callback(_bg_task_done)
 
         # Trigger background synthesis of agentic action plan
@@ -298,7 +298,7 @@ class VoicePipeline:
             })
 
     async def process_text(
-        self, user_text: str, session_id: str = "default", on_meta=None
+        self, user_text: str, session_id: str = "default", on_meta=None, user_id: str | None = None
     ) -> AsyncGenerator[bytes, None]:
         """
         Text-only pipeline (skip STT).
@@ -306,7 +306,7 @@ class VoicePipeline:
         """
         t_start = time.perf_counter()
         metrics = PipelineMetrics()
-        session = await self.get_or_load_session(session_id)
+        session = await self.get_or_load_session(session_id, user_id=user_id)
 
         logger.info(f"User text: '{user_text}'")
         if on_meta:
@@ -357,12 +357,12 @@ class VoicePipeline:
                     logger.error(f"Failed to generate session title: {e}")
                     session.title = f"Shift {session_id[:6].upper()}"
                 
-        task = asyncio.create_task(self._storage.save_history(session_id, session.history, session.title))
+        task = asyncio.create_task(self._storage.save_history(session_id, session.history, session.title, user_id=user_id))
         task.add_done_callback(_bg_task_done)
         
         # Frugal insights update: only run once every 6 turns to conserve TPM/RPM
         if len(session.history) >= 4 and len(session.history) % 6 == 0:
-            task = asyncio.create_task(self._update_insights_background("default", session.history, session, on_meta))
+            task = asyncio.create_task(self._update_insights_background(user_id or "default", session.history, session, on_meta))
             task.add_done_callback(_bg_task_done)
 
         # Trigger background synthesis of agentic action plan

@@ -113,21 +113,35 @@ async def health():
 
 
 @app.get("/sessions")
-async def get_sessions():
-    """List all past shifts."""
+async def get_sessions(uid: str | None = None):
+    """List all past shifts (optionally scoped to uid)."""
     if not pipeline:
         return JSONResponse(status_code=503, content={"detail": "Service not ready"})
-    sessions = await pipeline._storage.list_sessions()
+    sessions = await pipeline._storage.list_sessions(user_id=uid)
     return {"sessions": sessions}
 
 
+@app.get("/sessions/auth-config")
+async def get_auth_config():
+    """Deliver public Firebase client config without committing API key in git."""
+    return {
+        "projectId": settings.firebase_project_id,
+        "appId": settings.firebase_app_id,
+        "storageBucket": settings.firebase_storage_bucket,
+        "apiKey": settings.firebase_api_key,
+        "authDomain": settings.firebase_auth_domain,
+        "messagingSenderId": settings.firebase_messaging_sender_id,
+        "measurementId": settings.firebase_measurement_id,
+    }
+
+
 @app.get("/sessions/{session_id}")
-async def get_session_details(session_id: str):
+async def get_session_details(session_id: str, uid: str | None = None):
     """Load details of a specific shift."""
     if not pipeline:
         return JSONResponse(status_code=503, content={"detail": "Service not ready"})
     try:
-        session = await pipeline.get_or_load_session(session_id)
+        session = await pipeline.get_or_load_session(session_id, user_id=uid)
         return {
             "session_id": session_id,
             "history": session.history,
@@ -139,19 +153,19 @@ async def get_session_details(session_id: str):
 
 
 @app.get("/sessions/{session_id}/report")
-async def get_session_report(session_id: str):
+async def get_session_report(session_id: str, uid: str | None = None):
     """Fetch cached cognitive focus report or generate one dynamically."""
     if not pipeline:
         return JSONResponse(status_code=503, content={"detail": "Service not ready"})
     try:
         # 1. Try to load cached report from S3
-        cached_report = await pipeline._storage.load_report(session_id)
+        cached_report = await pipeline._storage.load_report(session_id, user_id=uid)
         if cached_report:
             logger.info(f"Loaded cached report for session {session_id} from S3.")
             return cached_report
 
         # 2. Not cached - generate report from history
-        session = await pipeline.get_or_load_session(session_id)
+        session = await pipeline.get_or_load_session(session_id, user_id=uid)
         if not session.history:
             return JSONResponse(
                 status_code=400,
@@ -162,7 +176,7 @@ async def get_session_report(session_id: str):
         report = await pipeline._llm.generate_session_report(session.history)
         
         # 3. Cache it in S3
-        await pipeline._storage.save_report(session_id, report)
+        await pipeline._storage.save_report(session_id, report, user_id=uid)
         
         return report
     except Exception as e:
@@ -175,7 +189,7 @@ async def get_session_report(session_id: str):
 
 # ── WebSocket Voice Endpoint ──
 @app.websocket("/ws/voice")
-async def voice_websocket(ws: WebSocket, session_id: str | None = None):
+async def voice_websocket(ws: WebSocket, session_id: str | None = None, uid: str | None = None):
     """
     Main voice WebSocket endpoint.
 
@@ -190,11 +204,11 @@ async def voice_websocket(ws: WebSocket, session_id: str | None = None):
     await ws.accept()
     if not session_id:
         session_id = str(uuid.uuid4())
-    logger.info(f"WebSocket connected: session {session_id[:8]}")
+    logger.info(f"WebSocket connected: session {session_id[:8]} (user: {uid or 'anonymous'})")
 
     try:
         # Pre-load session and send initial data to client
-        session = await pipeline.get_or_load_session(session_id)
+        session = await pipeline.get_or_load_session(session_id, user_id=uid)
         await ws.send_json({
             "type": "session_init",
             "history": session.history,
@@ -235,7 +249,7 @@ async def voice_websocket(ws: WebSocket, session_id: str | None = None):
             if msg["type"] == "audio":
                 # Audio bytes from client
                 audio_bytes = base64.b64decode(msg["data"])
-                async for chunk in pipeline.process(audio_bytes, session_id, on_meta=on_meta):
+                async for chunk in pipeline.process(audio_bytes, session_id, on_meta=on_meta, user_id=uid):
                     await ws.send_json({
                         "type": "audio",
                         "data": base64.b64encode(chunk).decode(),
@@ -245,7 +259,7 @@ async def voice_websocket(ws: WebSocket, session_id: str | None = None):
             elif msg["type"] == "text":
                 # Text from client (STT done client-side or typed)
                 user_text = msg["text"]
-                async for chunk in pipeline.process_text(user_text, session_id, on_meta=on_meta):
+                async for chunk in pipeline.process_text(user_text, session_id, on_meta=on_meta, user_id=uid):
                     await ws.send_json({
                         "type": "audio",
                         "data": base64.b64encode(chunk).decode(),

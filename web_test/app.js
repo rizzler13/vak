@@ -14,6 +14,336 @@ const API_URL = window.VAK_API_URL || (window.location.origin && window.location
     : 'http://localhost:8000');
 const WS_URL = API_URL.replace(/^http/, 'ws');
 
+// ── Firebase Configuration & Auth Gateway ──
+const isLocalHost = Boolean(
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.endsWith('.local') ||
+    window.location.protocol === 'file:'
+);
+
+let firebaseConfig = null;
+let firebaseAuth = null;
+let currentAuthUser = null;
+let authMode = 'signin'; // 'signin' | 'signup'
+let pendingPostAuthAction = null;
+let firebaseInitialized = false;
+
+function handleAuthStateChange(user) {
+    if (user) {
+        // Remove local guest flag when signed in via Firebase
+        localStorage.removeItem('vak_local_guest');
+        currentAuthUser = user;
+        updateAuthUI(user);
+        if (pendingPostAuthAction) {
+            const action = pendingPostAuthAction;
+            pendingPostAuthAction = null;
+            action();
+        }
+    } else {
+        if (isLocalHost && localStorage.getItem('vak_local_guest') === 'true') {
+            // Restore active local guest session
+            currentAuthUser = {
+                uid: 'guest_local_' + (localStorage.getItem('vak_session_id') || 'dev').substring(0, 8),
+                email: 'guest@localhost',
+                displayName: 'Local Guest',
+                isAnonymous: true
+            };
+            updateAuthUI(currentAuthUser);
+        } else {
+            currentAuthUser = null;
+            updateAuthUI(null);
+        }
+    }
+}
+
+// Dynamically fetch Firebase client config from backend at runtime (no API keys in git)
+async function initFirebaseAuth() {
+    if (firebaseInitialized && firebaseAuth) return;
+    try {
+        const res = await fetch(`${API_URL}/sessions/auth-config`);
+        if (res.ok) {
+            const config = await res.json();
+            if (config && config.apiKey && typeof firebase !== 'undefined' && firebase.initializeApp) {
+                firebaseConfig = config;
+                if (!firebase.apps || !firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                firebaseAuth = firebase.auth();
+                firebaseAuth.onAuthStateChanged(handleAuthStateChange);
+                firebaseInitialized = true;
+                return;
+            }
+        }
+    } catch (err) {
+        console.warn('Firebase Auth runtime configuration fetch failed:', err);
+    }
+
+    if (isLocalHost && localStorage.getItem('vak_local_guest') === 'true') {
+        currentAuthUser = {
+            uid: 'guest_local_' + (localStorage.getItem('vak_session_id') || 'dev').substring(0, 8),
+            email: 'guest@localhost',
+            displayName: 'Local Guest',
+            isAnonymous: true
+        };
+        updateAuthUI(currentAuthUser);
+    }
+}
+
+// Automatically trigger runtime auth config retrieval on load
+initFirebaseAuth();
+
+function isUserAuthenticated() {
+    return Boolean(currentAuthUser);
+}
+
+function requireAuth(actionCallback) {
+    if (isUserAuthenticated()) {
+        return true;
+    }
+    pendingPostAuthAction = actionCallback || null;
+    openAuthModal();
+    return false;
+}
+
+function updateAuthUI(user) {
+    const signinBtn = document.getElementById('header-signin-btn');
+    const userBadge = document.getElementById('header-user-badge');
+    const avatarInitial = document.getElementById('user-avatar-initial');
+    const displayName = document.getElementById('user-display-name');
+    const authBadge = document.getElementById('user-auth-badge');
+
+    if (user) {
+        if (signinBtn) signinBtn.classList.add('hidden');
+        if (userBadge) {
+            userBadge.classList.remove('hidden');
+            userBadge.classList.add('flex');
+        }
+        const name = user.displayName || (user.email ? user.email.split('@')[0] : 'Operator');
+        if (displayName) displayName.textContent = name;
+        if (avatarInitial) avatarInitial.textContent = name.charAt(0).toUpperCase();
+        if (authBadge) {
+            authBadge.textContent = user.isAnonymous ? '// LOCAL GUEST' : '// AUTHENTICATED';
+            authBadge.className = user.isAnonymous
+                ? 'font-label-mono-xs text-[8px] text-yellow-400 uppercase font-mono leading-none'
+                : 'font-label-mono-xs text-[8px] text-status-green uppercase font-mono leading-none';
+        }
+    } else {
+        if (signinBtn) signinBtn.classList.remove('hidden');
+        if (userBadge) {
+            userBadge.classList.remove('flex');
+            userBadge.classList.add('hidden');
+        }
+    }
+}
+
+function openAuthModal() {
+    clearAuthError();
+    const modal = document.getElementById('auth-modal');
+    if (!modal) return;
+
+    // Show/hide Local Guest Mode container based on environment
+    const localGuestBox = document.getElementById('auth-local-guest-container');
+    if (localGuestBox) {
+        if (isLocalHost) {
+            localGuestBox.classList.remove('hidden');
+        } else {
+            localGuestBox.classList.add('hidden');
+        }
+    }
+
+    modal.classList.add('active');
+}
+
+function closeAuthModal() {
+    const modal = document.getElementById('auth-modal');
+    if (modal) modal.classList.remove('active');
+    clearAuthError();
+}
+
+function showAuthError(msg) {
+    const banner = document.getElementById('auth-error-banner');
+    const text = document.getElementById('auth-error-text');
+    if (banner && text) {
+        text.textContent = msg;
+        banner.classList.remove('hidden');
+    }
+}
+
+function clearAuthError() {
+    const banner = document.getElementById('auth-error-banner');
+    if (banner) banner.classList.add('hidden');
+}
+
+function toggleAuthMode() {
+    clearAuthError();
+    const title = document.getElementById('auth-modal-title');
+    const subtitle = document.getElementById('auth-modal-subtitle');
+    const submitBtn = document.getElementById('auth-submit-btn');
+    const toggleBtn = document.getElementById('auth-toggle-mode-btn');
+
+    if (authMode === 'signin') {
+        authMode = 'signup';
+        if (title) title.textContent = 'REGISTER OPERATOR';
+        if (subtitle) subtitle.textContent = 'Create your operator credentials to unlock Vāk.';
+        if (submitBtn) submitBtn.textContent = 'CREATE ACCOUNT';
+        if (toggleBtn) toggleBtn.innerHTML = 'Already have credentials? <span class="underline text-electric-blue">Sign In</span>';
+    } else {
+        authMode = 'signin';
+        if (title) title.textContent = 'SIGN IN TO VĀK';
+        if (subtitle) subtitle.textContent = 'High-agency terminal requires verified operator ID.';
+        if (submitBtn) submitBtn.textContent = 'AUTHENTICATE';
+        if (toggleBtn) toggleBtn.innerHTML = 'Need an operator account? <span class="underline text-electric-blue">Register</span>';
+    }
+}
+
+async function signInWithGoogle() {
+    clearAuthError();
+    if (!firebaseAuth) {
+        await initFirebaseAuth();
+    }
+    if (!firebaseAuth) {
+        if (isLocalHost) {
+            showAuthError('Firebase SDK not loaded. Use the Local Guest Mode bypass below.');
+        } else {
+            showAuthError('Firebase Auth unavailable. Please check your network connection.');
+        }
+        return;
+    }
+    try {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        const result = await firebaseAuth.signInWithPopup(provider);
+        localStorage.removeItem('vak_local_guest');
+        currentAuthUser = result.user;
+        updateAuthUI(currentAuthUser);
+        closeAuthModal();
+        if (pendingPostAuthAction) {
+            const action = pendingPostAuthAction;
+            pendingPostAuthAction = null;
+            action();
+        }
+    } catch (err) {
+        console.error('Google Sign-In Error:', err);
+        let msg = err.message || 'Failed to authenticate with Google.';
+        if (err.code === 'auth/popup-closed-by-user') {
+            msg = 'Sign-in popup was closed before completing.';
+        } else if (err.code === 'auth/unauthorized-domain') {
+            msg = 'Domain not authorized in Firebase Console (Settings -> Authorized Domains).';
+        }
+        showAuthError(msg);
+    }
+}
+
+async function handleEmailAuth(e) {
+    if (e) e.preventDefault();
+    clearAuthError();
+    const emailInput = document.getElementById('auth-email-input');
+    const passwordInput = document.getElementById('auth-password-input');
+    const email = emailInput ? emailInput.value.trim() : '';
+    const password = passwordInput ? passwordInput.value : '';
+
+    if (!email || !password) {
+        showAuthError('Please enter both email and password.');
+        return;
+    }
+
+    if (!firebaseAuth) {
+        await initFirebaseAuth();
+    }
+    if (!firebaseAuth) {
+        if (isLocalHost) {
+            showAuthError('Firebase SDK not loaded. Use the Local Guest Mode bypass below.');
+        } else {
+            showAuthError('Firebase Auth unavailable. Please check your network connection.');
+        }
+        return;
+    }
+
+    try {
+        let result;
+        if (authMode === 'signup') {
+            result = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+        } else {
+            result = await firebaseAuth.signInWithEmailAndPassword(email, password);
+        }
+        localStorage.removeItem('vak_local_guest');
+        currentAuthUser = result.user;
+        updateAuthUI(currentAuthUser);
+        closeAuthModal();
+        if (pendingPostAuthAction) {
+            const action = pendingPostAuthAction;
+            pendingPostAuthAction = null;
+            action();
+        }
+    } catch (err) {
+        console.error('Email Auth Error:', err);
+        let msg = err.message || 'Authentication failed.';
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+            msg = 'Invalid email or password. If you do not have an account, click "Register".';
+        } else if (err.code === 'auth/email-already-in-use') {
+            msg = 'This email is already registered. Please sign in instead.';
+        } else if (err.code === 'auth/weak-password') {
+            msg = 'Passphrase must be at least 6 characters.';
+        }
+        showAuthError(msg);
+    }
+}
+
+function continueAsLocalGuest() {
+    if (!isLocalHost) return;
+    localStorage.setItem('vak_local_guest', 'true');
+    const sessionId = localStorage.getItem('vak_session_id') || ('guest_' + Math.random().toString(36).substring(2, 9));
+    currentAuthUser = {
+        uid: 'guest_local_' + sessionId.substring(0, 8),
+        email: 'guest@localhost',
+        displayName: 'Local Guest',
+        isAnonymous: true
+    };
+    updateAuthUI(currentAuthUser);
+    closeAuthModal();
+    if (pendingPostAuthAction) {
+        const action = pendingPostAuthAction;
+        pendingPostAuthAction = null;
+        action();
+    }
+}
+
+async function signOutUser() {
+    localStorage.removeItem('vak_local_guest');
+    if (firebaseAuth) {
+        try {
+            await firebaseAuth.signOut();
+        } catch (e) {
+            console.warn('Sign out error:', e);
+        }
+    }
+    currentAuthUser = null;
+    updateAuthUI(null);
+    const chatView = document.getElementById('view-chat');
+    if (chatView && chatView.classList.contains('active')) {
+        switchView('home');
+    }
+}
+
+function enterTerminal() {
+    if (!requireAuth(() => switchView('chat'))) {
+        return;
+    }
+    switchView('chat');
+}
+
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+window.toggleAuthMode = toggleAuthMode;
+window.signInWithGoogle = signInWithGoogle;
+window.handleEmailAuth = handleEmailAuth;
+window.continueAsLocalGuest = continueAsLocalGuest;
+window.signOutUser = signOutUser;
+window.enterTerminal = enterTerminal;
+window.requireAuth = requireAuth;
+window.isUserAuthenticated = isUserAuthenticated;
+
 // ── State ──
 let ws = null;
 let mediaRecorder = null;
@@ -165,6 +495,12 @@ window.escapeQuote = escapeQuote;
 
 // ── SPA View Switcher ──
 function switchView(viewId) {
+    if (viewId === 'chat' && !isUserAuthenticated()) {
+        pendingPostAuthAction = () => switchView('chat');
+        openAuthModal();
+        return;
+    }
+
     const views = ['home', 'about', 'chat'];
     views.forEach(v => {
         const viewEl = document.getElementById(`view-${v}`);
@@ -277,7 +613,8 @@ function connectWS() {
     }
     currentSessionId = sessionId;
 
-    ws = new WebSocket(`${WS_URL}/ws/voice?session_id=${sessionId}`);
+    const uidParam = currentAuthUser ? encodeURIComponent(currentAuthUser.uid) : 'anonymous';
+    ws = new WebSocket(`${WS_URL}/ws/voice?session_id=${sessionId}&uid=${uidParam}`);
 
     ws.onopen = () => {
         if (wsDot) wsDot.className = 'w-2.5 h-2.5 rounded-full bg-status-green pulse-ring relative';
@@ -451,6 +788,10 @@ async function playNextChunk() {
 let micStream = null;
 
 async function startRecording() {
+    if (!requireAuth(() => startRecording())) {
+        return;
+    }
+
     // Automatically suspend background Kanye music on voice interaction
     pauseKanyeMusic();
     stopAssistantSpeaking();
@@ -643,6 +984,10 @@ let pendingSendText = null;
 function sendText(text) {
     const cleanText = text ? text.trim() : '';
     if (!cleanText) return;
+
+    if (!requireAuth(() => sendText(cleanText))) {
+        return;
+    }
 
     pauseKanyeMusic();
     stopAssistantSpeaking();
@@ -1814,7 +2159,8 @@ function switchSession(sessionId) {
 // ── Fetch Past Sessions ──
 async function fetchSessions() {
     try {
-        const res = await fetch(`${API_URL}/sessions`);
+        const uidParam = currentAuthUser ? `?uid=${encodeURIComponent(currentAuthUser.uid)}` : '';
+        const res = await fetch(`${API_URL}/sessions${uidParam}`);
         const data = await res.json();
         renderSessionList(data.sessions || []);
     } catch (e) {
@@ -1922,7 +2268,8 @@ async function loadAndRenderReport() {
     });
 
     try {
-        const res = await fetch(`${API_URL}/sessions/${sessionId}/report`);
+        const uidParam = currentAuthUser ? `?uid=${encodeURIComponent(currentAuthUser.uid)}` : '';
+        const res = await fetch(`${API_URL}/sessions/${sessionId}/report${uidParam}`);
         if (!res.ok) {
             let detail = 'No dialogue history available. Start a session in the terminal and speak/type to generate your focus report.';
             try {

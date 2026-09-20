@@ -64,6 +64,15 @@ class Settings(BaseSettings):
     aws_s3_bucket: str = "vak-session-history"
     aws_s3_prefix: str = "vak/"
 
+    # --- Firebase Client Config (delivered dynamically via API) ---
+    firebase_project_id: str = "project-vak"
+    firebase_app_id: str = "1:953057699349:web:c863f222d30d17a33fd01c"
+    firebase_storage_bucket: str = "project-vak.firebasestorage.app"
+    firebase_api_key: str = ""
+    firebase_auth_domain: str = "project-vak.firebaseapp.com"
+    firebase_messaging_sender_id: str = "953057699349"
+    firebase_measurement_id: str = "G-NLEF91M6S1"
+
     def validate_keys(self) -> dict[str, bool]:
         """Check which API keys are configured."""
         return {

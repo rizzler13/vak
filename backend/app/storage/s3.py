@@ -100,14 +100,52 @@ class S3HistoryStore:
             else:
                 logger.error(f"Error checking bucket access: {e}. Storage will proceed but might fail.")
 
+    # ── Path & Key Helpers ──
+
+    def _session_key(self, session_id: str, user_id: str | None = None) -> str:
+        if user_id and user_id not in ("default", "anonymous"):
+            return f"{self.prefix}users/{user_id}/sessions/{session_id}.json"
+        return f"{self.prefix}sessions/{session_id}.json"
+
+    def _insights_key(self, user_id: str = "default") -> str:
+        if user_id and user_id not in ("default", "anonymous"):
+            return f"{self.prefix}users/{user_id}/insights/{user_id}.json"
+        return f"{self.prefix}insights/{user_id}.json"
+
+    def _report_key(self, session_id: str, user_id: str | None = None) -> str:
+        if user_id and user_id not in ("default", "anonymous"):
+            return f"{self.prefix}users/{user_id}/reports/{session_id}.json"
+        return f"{self.prefix}reports/{session_id}.json"
+
+    def _session_filepath(self, session_id: str, user_id: str | None = None):
+        if user_id and user_id not in ("default", "anonymous"):
+            p = self.sessions_dir / user_id
+            p.mkdir(parents=True, exist_ok=True)
+            return p / f"{session_id}.json"
+        return self.sessions_dir / f"{session_id}.json"
+
+    def _insights_filepath(self, user_id: str = "default"):
+        if user_id and user_id not in ("default", "anonymous"):
+            p = self.insights_dir / user_id
+            p.mkdir(parents=True, exist_ok=True)
+            return p / f"{user_id}.json"
+        return self.insights_dir / f"{user_id}.json"
+
+    def _report_filepath(self, session_id: str, user_id: str | None = None):
+        if user_id and user_id not in ("default", "anonymous"):
+            p = self.reports_dir / user_id
+            p.mkdir(parents=True, exist_ok=True)
+            return p / f"{session_id}.json"
+        return self.reports_dir / f"{session_id}.json"
+
     # ── Session Transcripts (History) ──
 
-    def _load_history_sync(self, session_id: str) -> list[dict]:
+    def _load_history_sync(self, session_id: str, user_id: str | None = None) -> list[dict]:
         """Synchronous S3 fetch helper for session transcripts."""
         if not self.enabled or not self.s3_client:
             return []
 
-        key = f"{self.prefix}sessions/{session_id}.json"
+        key = self._session_key(session_id, user_id)
         try:
             logger.info(f"Fetching session {session_id} history from S3: {key}")
             response = self.s3_client.get_object(Bucket=self.bucket_name, Key=key)
@@ -116,17 +154,29 @@ class S3HistoryStore:
             logger.info(f"Successfully loaded {len(history)} messages from S3 for session {session_id}.")
             return history
         except self.s3_client.exceptions.NoSuchKey:
+            if user_id and user_id not in ("default", "anonymous"):
+                legacy_key = f"{self.prefix}sessions/{session_id}.json"
+                try:
+                    res = self.s3_client.get_object(Bucket=self.bucket_name, Key=legacy_key)
+                    data = json.loads(res["Body"].read().decode("utf-8"))
+                    return data.get("history", [])
+                except Exception:
+                    pass
             logger.info(f"No existing history file found for session {session_id} in S3. Starting fresh.")
             return []
         except Exception as e:
             logger.error(f"Failed to load history from S3 for session {session_id}: {e}", exc_info=True)
             return []
 
-    def _load_history_local(self, session_id: str) -> list[dict]:
+    def _load_history_local(self, session_id: str, user_id: str | None = None) -> list[dict]:
         """Synchronous local fetch helper for session transcripts."""
-        filepath = self.sessions_dir / f"{session_id}.json"
+        filepath = self._session_filepath(session_id, user_id)
         if not filepath.exists():
-            return []
+            legacy_filepath = self.sessions_dir / f"{session_id}.json"
+            if legacy_filepath.exists():
+                filepath = legacy_filepath
+            else:
+                return []
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -135,15 +185,14 @@ class S3HistoryStore:
             logger.error(f"Failed to load local history for session {session_id}: {e}")
             return []
 
-    def _save_history_sync(self, session_id: str, history: list[dict], title: str = ""):
+    def _save_history_sync(self, session_id: str, history: list[dict], title: str = "", user_id: str | None = None):
         """Synchronous S3 upload helper for session transcripts."""
         if not self.enabled or not self.s3_client:
             return
 
-        key = f"{self.prefix}sessions/{session_id}.json"
+        key = self._session_key(session_id, user_id)
         try:
             logger.info(f"Saving session {session_id} history to S3: {key}")
-            # Try to fetch existing history from S3 to preserve title
             existing_title = ""
             if not title:
                 try:
@@ -155,6 +204,7 @@ class S3HistoryStore:
 
             payload = {
                 "session_id": session_id,
+                "user_id": user_id or "default",
                 "history": history,
                 "title": title or existing_title or f"Shift {session_id[:6].upper()}"
             }
@@ -168,9 +218,9 @@ class S3HistoryStore:
         except Exception as e:
             logger.error(f"Failed to save history to S3 for session {session_id}: {e}", exc_info=True)
 
-    def _save_history_local(self, session_id: str, history: list[dict], title: str = ""):
+    def _save_history_local(self, session_id: str, history: list[dict], title: str = "", user_id: str | None = None):
         """Synchronous local save helper for session transcripts."""
-        filepath = self.sessions_dir / f"{session_id}.json"
+        filepath = self._session_filepath(session_id, user_id)
         try:
             existing_title = ""
             if filepath.exists() and not title:
@@ -183,6 +233,7 @@ class S3HistoryStore:
 
             payload = {
                 "session_id": session_id,
+                "user_id": user_id or "default",
                 "history": history,
                 "title": title or existing_title or f"Shift {session_id[:6].upper()}"
             }
@@ -191,30 +242,30 @@ class S3HistoryStore:
         except Exception as e:
             logger.error(f"Failed to save local history for session {session_id}: {e}")
 
-    async def load_history(self, session_id: str) -> list[dict]:
+    async def load_history(self, session_id: str, user_id: str | None = None) -> list[dict]:
         """Asynchronously load session history from S3 or local fallback."""
         loop = asyncio.get_running_loop()
         if self.enabled:
-            return await loop.run_in_executor(self.executor, self._load_history_sync, session_id)
+            return await loop.run_in_executor(self.executor, self._load_history_sync, session_id, user_id)
         else:
-            return await loop.run_in_executor(None, self._load_history_local, session_id)
+            return await loop.run_in_executor(None, self._load_history_local, session_id, user_id)
 
-    async def save_history(self, session_id: str, history: list[dict], title: str = ""):
+    async def save_history(self, session_id: str, history: list[dict], title: str = "", user_id: str | None = None):
         """Asynchronously save session history to S3 or local fallback."""
         loop = asyncio.get_running_loop()
         if self.enabled:
-            await loop.run_in_executor(self.executor, self._save_history_sync, session_id, history, title)
+            await loop.run_in_executor(self.executor, self._save_history_sync, session_id, history, title, user_id)
         else:
-            await loop.run_in_executor(None, self._save_history_local, session_id, history, title)
+            await loop.run_in_executor(None, self._save_history_local, session_id, history, title, user_id)
 
     # ── User Insights (Long-Term Memory) ──
 
-    def _load_insights_sync(self, user_id: str) -> dict:
+    def _load_insights_sync(self, user_id: str = "default") -> dict:
         """Synchronous S3 fetch helper for user profile insights."""
         if not self.enabled or not self.s3_client:
             return {}
 
-        key = f"{self.prefix}insights/{user_id}.json"
+        key = self._insights_key(user_id)
         try:
             logger.info(f"Fetching user insights for {user_id} from S3: {key}")
             response = self.s3_client.get_object(Bucket=self.bucket_name, Key=key)
@@ -228,9 +279,9 @@ class S3HistoryStore:
             logger.error(f"Failed to load user insights from S3 for {user_id}: {e}", exc_info=True)
             return {}
 
-    def _load_insights_local(self, user_id: str) -> dict:
+    def _load_insights_local(self, user_id: str = "default") -> dict:
         """Synchronous local fetch helper for user profile insights."""
-        filepath = self.insights_dir / f"{user_id}.json"
+        filepath = self._insights_filepath(user_id)
         if not filepath.exists():
             return {}
         try:
@@ -245,7 +296,7 @@ class S3HistoryStore:
         if not self.enabled or not self.s3_client:
             return
 
-        key = f"{self.prefix}insights/{user_id}.json"
+        key = self._insights_key(user_id)
         try:
             logger.info(f"Saving user insights for {user_id} to S3: {key}")
             self.s3_client.put_object(
@@ -260,14 +311,14 @@ class S3HistoryStore:
 
     def _save_insights_local(self, user_id: str, insights: dict):
         """Synchronous local save helper for user profile insights."""
-        filepath = self.insights_dir / f"{user_id}.json"
+        filepath = self._insights_filepath(user_id)
         try:
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(insights, f, indent=2, ensure_ascii=False)
         except Exception as e:
             logger.error(f"Failed to save local insights for {user_id}: {e}")
 
-    async def load_insights(self, user_id: str) -> dict:
+    async def load_insights(self, user_id: str = "default") -> dict:
         """Asynchronously load user insights from S3 or local fallback."""
         loop = asyncio.get_running_loop()
         if self.enabled:
@@ -285,14 +336,14 @@ class S3HistoryStore:
 
     # ── Session Listing ──
 
-    def _list_sessions_sync(self) -> list[dict]:
-        """Synchronous S3 fetch helper to list all past sessions with parallel downloads for titles."""
+    def _list_sessions_sync(self, user_id: str | None = None) -> list[dict]:
+        """Synchronous S3 fetch helper to list past sessions with parallel downloads for titles."""
         if not self.enabled or not self.s3_client:
             return []
 
-        prefix = f"{self.prefix}sessions/"
+        prefix = f"{self.prefix}users/{user_id}/sessions/" if (user_id and user_id not in ("default", "anonymous")) else f"{self.prefix}sessions/"
         try:
-            logger.info(f"Listing sessions from S3: {prefix}")
+            logger.info(f"Listing sessions from S3 prefix: {prefix}")
             response = self.s3_client.list_objects_v2(
                 Bucket=self.bucket_name,
                 Prefix=prefix
@@ -340,17 +391,20 @@ class S3HistoryStore:
             logger.error(f"Failed to list sessions from S3: {e}", exc_info=True)
             return []
 
-    def _list_sessions_local(self) -> list[dict]:
+    def _list_sessions_local(self, user_id: str | None = None) -> list[dict]:
         """Synchronous local listing helper for past sessions."""
         import os
         from datetime import datetime
         sessions = []
+        target_dir = (self.sessions_dir / user_id) if (user_id and user_id not in ("default", "anonymous")) else self.sessions_dir
+        if not target_dir.exists():
+            return []
         try:
-            for filename in os.listdir(self.sessions_dir):
+            for filename in os.listdir(target_dir):
                 if not filename.endswith(".json"):
                     continue
                 session_id = filename[:-5]
-                filepath = self.sessions_dir / filename
+                filepath = target_dir / filename
                 mtime = os.path.getmtime(filepath)
                 last_modified = datetime.fromtimestamp(mtime).isoformat()
                 
@@ -374,22 +428,22 @@ class S3HistoryStore:
             logger.error(f"Failed to list local sessions: {e}")
             return []
 
-    async def list_sessions(self) -> list[dict]:
+    async def list_sessions(self, user_id: str | None = None) -> list[dict]:
         """Asynchronously list past sessions from S3 or local fallback."""
         loop = asyncio.get_running_loop()
         if self.enabled:
-            return await loop.run_in_executor(self.executor, self._list_sessions_sync)
+            return await loop.run_in_executor(self.executor, self._list_sessions_sync, user_id)
         else:
-            return await loop.run_in_executor(None, self._list_sessions_local)
+            return await loop.run_in_executor(None, self._list_sessions_local, user_id)
 
     # ── Cognitive focus reports (Cached Whoop Reports) ──
 
-    def _load_report_sync(self, session_id: str) -> dict | None:
+    def _load_report_sync(self, session_id: str, user_id: str | None = None) -> dict | None:
         """Synchronous S3 fetch helper for cached cognitive reports."""
         if not self.enabled or not self.s3_client:
             return None
 
-        key = f"{self.prefix}reports/{session_id}.json"
+        key = self._report_key(session_id, user_id)
         try:
             logger.info(f"Fetching report for session {session_id} from S3: {key}")
             response = self.s3_client.get_object(Bucket=self.bucket_name, Key=key)
@@ -402,9 +456,9 @@ class S3HistoryStore:
             logger.error(f"Failed to load report from S3 for session {session_id}: {e}", exc_info=True)
             return None
 
-    def _load_report_local(self, session_id: str) -> dict | None:
+    def _load_report_local(self, session_id: str, user_id: str | None = None) -> dict | None:
         """Synchronous local fetch helper for focus reports."""
-        filepath = self.reports_dir / f"{session_id}.json"
+        filepath = self._report_filepath(session_id, user_id)
         if not filepath.exists():
             return None
         try:
@@ -414,12 +468,12 @@ class S3HistoryStore:
             logger.error(f"Failed to load local report for session {session_id}: {e}")
             return None
 
-    def _save_report_sync(self, session_id: str, report: dict):
+    def _save_report_sync(self, session_id: str, report: dict, user_id: str | None = None):
         """Synchronous S3 upload helper for cached cognitive reports."""
         if not self.enabled or not self.s3_client:
             return
 
-        key = f"{self.prefix}reports/{session_id}.json"
+        key = self._report_key(session_id, user_id)
         try:
             logger.info(f"Saving report for session {session_id} to S3: {key}")
             self.s3_client.put_object(
@@ -432,27 +486,28 @@ class S3HistoryStore:
         except Exception as e:
             logger.error(f"Failed to save report to S3 for session {session_id}: {e}", exc_info=True)
 
-    def _save_report_local(self, session_id: str, report: dict):
+    def _save_report_local(self, session_id: str, report: dict, user_id: str | None = None):
         """Synchronous local save helper for focus reports."""
-        filepath = self.reports_dir / f"{session_id}.json"
+        filepath = self._report_filepath(session_id, user_id)
         try:
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(report, f, indent=2, ensure_ascii=False)
         except Exception as e:
             logger.error(f"Failed to save local report for session {session_id}: {e}")
 
-    async def load_report(self, session_id: str) -> dict | None:
+    async def load_report(self, session_id: str, user_id: str | None = None) -> dict | None:
         """Asynchronously load cached focus report from S3 or local fallback."""
         loop = asyncio.get_running_loop()
         if self.enabled:
-            return await loop.run_in_executor(self.executor, self._load_report_sync, session_id)
+            return await loop.run_in_executor(self.executor, self._load_report_sync, session_id, user_id)
         else:
-            return await loop.run_in_executor(None, self._load_report_local, session_id)
+            return await loop.run_in_executor(None, self._load_report_local, session_id, user_id)
 
-    async def save_report(self, session_id: str, report: dict):
+    async def save_report(self, session_id: str, report: dict, user_id: str | None = None):
         """Asynchronously save focus report to S3 or local fallback."""
         loop = asyncio.get_running_loop()
         if self.enabled:
-            await loop.run_in_executor(self.executor, self._save_report_sync, session_id, report)
+            await loop.run_in_executor(self.executor, self._save_report_sync, session_id, report, user_id)
         else:
-            await loop.run_in_executor(None, self._save_report_local, session_id, report)
+            await loop.run_in_executor(None, self._save_report_local, session_id, report, user_id)
+
