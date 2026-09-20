@@ -8,14 +8,18 @@ HTTP endpoints for health check and text-based testing.
 import base64
 import json
 import logging
+import time
 import uuid
 from contextlib import asynccontextmanager
+from pathlib import Path
+from urllib.parse import urlparse
 
+import httpx
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pathlib import Path
+from pydantic import BaseModel, Field
 
 from app.config import settings
 from app.llm.llm_router import LLMRouter
@@ -133,6 +137,179 @@ async def get_auth_config():
         "messagingSenderId": settings.firebase_messaging_sender_id,
         "measurementId": settings.firebase_measurement_id,
     }
+
+
+class ProxyTestRequest(BaseModel):
+    url: str
+    method: str = "GET"
+    headers: dict[str, str] = Field(default_factory=dict)
+    body: str | None = None
+
+
+@app.post("/sessions/proxy-test")
+@app.post("/proxy-test")
+async def proxy_test_endpoint(req: ProxyTestRequest):
+    """
+    Server-side proxy for the In-Browser API Tester.
+    Bypasses browser CORS restrictions and safely validates remote endpoints.
+    """
+    url = req.url.strip()
+    if not url:
+        return JSONResponse(status_code=400, content={
+            "ok": False,
+            "status": 400,
+            "error_type": "EMPTY_URL",
+            "message": "Target URL cannot be empty.",
+            "proxied": True
+        })
+
+    if not (url.startswith("http://") or url.startswith("https://")):
+        url = "https://" + url
+
+    parsed = urlparse(url)
+    hostname = (parsed.hostname or "").lower()
+
+    # Block internal metadata endpoints and cloud link-local addresses
+    blocked_hosts = [
+        "169.254.169.254", "169.254.170.2", "instance-data",
+        "metadata.google.internal", "metadata.goog"
+    ]
+    if hostname in blocked_hosts or hostname.startswith("169.254."):
+        return JSONResponse(status_code=403, content={
+            "ok": False,
+            "status": 403,
+            "error_type": "SSRF_BLOCKED",
+            "message": "Access to internal cloud metadata IP addresses is restricted for security.",
+            "proxied": True
+        })
+
+    method = req.method.upper()
+    if method not in ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]:
+        return JSONResponse(status_code=400, content={
+            "ok": False,
+            "status": 400,
+            "error_type": "INVALID_METHOD",
+            "message": f"HTTP method '{method}' is not supported.",
+            "proxied": True
+        })
+
+    req_headers = {
+        "User-Agent": "Vak-Terminal-API-Tester/1.0",
+        "Accept": "*/*"
+    }
+    for k, v in req.headers.items():
+        if k.lower() not in ["host", "content-length"]:
+            req_headers[k] = v
+
+    content_data = None
+    if method in ["POST", "PUT", "PATCH"] and req.body:
+        content_data = req.body.encode("utf-8")
+        if "content-type" not in [k.lower() for k in req_headers]:
+            req_headers["Content-Type"] = "application/json"
+
+    t0 = time.perf_counter()
+    try:
+        async with httpx.AsyncClient(
+            timeout=15.0,
+            follow_redirects=True,
+            verify=False
+        ) as client:
+            resp = await client.request(
+                method=method,
+                url=url,
+                headers=req_headers,
+                content=content_data
+            )
+            duration_ms = int((time.perf_counter() - t0) * 1000)
+
+            # Limit body capture to 256KB to avoid browser freeze
+            text_preview = resp.text[:256000]
+            is_json = False
+            try:
+                parsed_json = json.loads(text_preview)
+                formatted_body = json.dumps(parsed_json, indent=2)
+                is_json = True
+            except Exception:
+                formatted_body = text_preview
+
+            resp_headers = {
+                k: v for k, v in resp.headers.items()
+                if k.lower() in ["content-type", "server", "date", "content-length", "etag", "cache-control"]
+            }
+
+            return {
+                "ok": resp.is_success,
+                "status": resp.status_code,
+                "status_text": resp.reason_phrase or ("OK" if resp.is_success else "HTTP Error"),
+                "duration_ms": duration_ms,
+                "headers": resp_headers,
+                "body": formatted_body,
+                "is_json": is_json,
+                "content_type": resp.headers.get("content-type", ""),
+                "proxied": True,
+                "target_url": str(resp.url)
+            }
+
+    except httpx.ConnectTimeout:
+        duration_ms = int((time.perf_counter() - t0) * 1000)
+        return {
+            "ok": False,
+            "status": 504,
+            "status_text": "GATEWAY TIMEOUT",
+            "duration_ms": duration_ms,
+            "error_type": "CONNECT_TIMEOUT",
+            "message": f"Connection to {hostname} timed out after 15 seconds. The remote server is unresponsive.",
+            "proxied": True,
+            "target_url": url
+        }
+    except httpx.ReadTimeout:
+        duration_ms = int((time.perf_counter() - t0) * 1000)
+        return {
+            "ok": False,
+            "status": 504,
+            "status_text": "READ TIMEOUT",
+            "duration_ms": duration_ms,
+            "error_type": "READ_TIMEOUT",
+            "message": f"Connected to {hostname}, but reading the response timed out after 15 seconds.",
+            "proxied": True,
+            "target_url": url
+        }
+    except httpx.ConnectError:
+        duration_ms = int((time.perf_counter() - t0) * 1000)
+        return {
+            "ok": False,
+            "status": 502,
+            "status_text": "BAD GATEWAY",
+            "duration_ms": duration_ms,
+            "error_type": "CONNECT_ERROR",
+            "message": f"Could not establish connection to {hostname}. Verify the domain exists, DNS is resolving, and port is open.",
+            "proxied": True,
+            "target_url": url
+        }
+    except httpx.InvalidURL as e:
+        return {
+            "ok": False,
+            "status": 400,
+            "status_text": "INVALID URL",
+            "duration_ms": 0,
+            "error_type": "INVALID_URL",
+            "message": f"Malformed URL: {str(e)}",
+            "proxied": True,
+            "target_url": url
+        }
+    except Exception as e:
+        duration_ms = int((time.perf_counter() - t0) * 1000)
+        logger.warning(f"Proxy test error for {url}: {e}")
+        return {
+            "ok": False,
+            "status": 500,
+            "status_text": "PROXY FAILURE",
+            "duration_ms": duration_ms,
+            "error_type": "UNEXPECTED_ERROR",
+            "message": f"Unexpected proxy execution error: {str(e)}",
+            "proxied": True,
+            "target_url": url
+        }
 
 
 @app.get("/sessions/{session_id}")

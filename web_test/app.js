@@ -226,10 +226,14 @@ async function signInWithGoogle() {
     } catch (err) {
         console.error('Google Sign-In Error:', err);
         let msg = err.message || 'Failed to authenticate with Google.';
-        if (err.code === 'auth/popup-closed-by-user') {
+        if (err.code === 'auth/configuration-not-found' || (err.message && err.message.includes('configuration-not-found'))) {
+            msg = 'Firebase Auth or the Google Provider is not enabled in Firebase Console for project-vak. Please enable Google under Authentication > Sign-in method.';
+        } else if (err.code === 'auth/operation-not-allowed') {
+            msg = 'Google sign-in is disabled in Firebase Console. Go to Authentication > Sign-in method and enable Google.';
+        } else if (err.code === 'auth/popup-closed-by-user') {
             msg = 'Sign-in popup was closed before completing.';
         } else if (err.code === 'auth/unauthorized-domain') {
-            msg = 'Domain not authorized in Firebase Console (Settings -> Authorized Domains).';
+            msg = 'Domain not authorized in Firebase Console (Settings -> Authorized Domains). Add ' + window.location.hostname;
         }
         showAuthError(msg);
     }
@@ -279,7 +283,11 @@ async function handleEmailAuth(e) {
     } catch (err) {
         console.error('Email Auth Error:', err);
         let msg = err.message || 'Authentication failed.';
-        if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        if (err.code === 'auth/configuration-not-found' || (err.message && err.message.includes('configuration-not-found'))) {
+            msg = 'Firebase Auth or the Email/Password Provider is not enabled in Firebase Console for project-vak. Please enable Email/Password under Authentication > Sign-in method.';
+        } else if (err.code === 'auth/operation-not-allowed') {
+            msg = 'Email/Password sign-in is disabled in Firebase Console. Go to Authentication > Sign-in method and enable Email/Password.';
+        } else if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
             msg = 'Invalid email or password. If you do not have an account, click "Register".';
         } else if (err.code === 'auth/email-already-in-use') {
             msg = 'This email is already registered. Please sign in instead.';
@@ -1828,9 +1836,17 @@ if (apiTestMethod) {
 
 if (apiTestSendBtn) {
     apiTestSendBtn.addEventListener('click', async () => {
-        const url = apiTestUrl ? apiTestUrl.value.trim() : '';
+        let url = apiTestUrl ? apiTestUrl.value.trim() : '';
         const method = apiTestMethod ? apiTestMethod.value : 'GET';
         if (!url) return;
+
+        if (!/^https?:\/\//i.test(url)) {
+            url = 'https://' + url;
+            if (apiTestUrl) apiTestUrl.value = url;
+        }
+
+        const routeInfo = document.getElementById('api-test-route-info');
+        if (routeInfo) routeInfo.classList.add('hidden');
 
         if (apiTestBadge) {
             apiTestBadge.textContent = 'TESTING...';
@@ -1838,54 +1854,145 @@ if (apiTestSendBtn) {
         }
 
         const tStart = performance.now();
-        try {
-            const fetchOptions = {
-                method: method,
-                headers: { 'Accept': 'application/json' }
-            };
+        let directSuccess = false;
 
-            if (['POST', 'PUT', 'PATCH'].includes(method) && apiTestBody && apiTestBody.value.trim()) {
-                fetchOptions.headers['Content-Type'] = 'application/json';
-                fetchOptions.body = apiTestBody.value.trim();
-            }
+        // Determine if URL is same-origin or localhost where direct fetch is viable
+        const isSameOriginOrLocal = url.startsWith('/') || 
+            url.startsWith(window.location.origin) || 
+            (isLocalHost && (url.includes('localhost') || url.includes('127.0.0.1')));
 
-            const res = await fetch(url, fetchOptions);
-            const duration = Math.round(performance.now() - tStart);
-
-            let rawText = await res.text();
-            let formattedText = rawText;
+        if (isSameOriginOrLocal) {
             try {
-                const jsonObj = JSON.parse(rawText);
-                formattedText = JSON.stringify(jsonObj, null, 2);
-            } catch (_) {}
+                const fetchOptions = {
+                    method: method,
+                    headers: { 'Accept': 'application/json, text/plain, */*' }
+                };
+                if (['POST', 'PUT', 'PATCH'].includes(method) && apiTestBody && apiTestBody.value.trim()) {
+                    fetchOptions.headers['Content-Type'] = 'application/json';
+                    fetchOptions.body = apiTestBody.value.trim();
+                }
+                const res = await fetch(url, fetchOptions);
+                const duration = Math.round(performance.now() - tStart);
+                let rawText = await res.text();
+                let formattedText = rawText;
+                try {
+                    const jsonObj = JSON.parse(rawText);
+                    formattedText = JSON.stringify(jsonObj, null, 2);
+                } catch (_) {}
 
-            if (apiTestResponseDrawer) apiTestResponseDrawer.classList.remove('hidden');
-            if (apiTestStatus) {
-                apiTestStatus.textContent = `STATUS: ${res.status} ${res.statusText || ''}`;
-                apiTestStatus.className = res.ok ? 'text-green-400' : 'text-red-400';
+                if (apiTestResponseDrawer) apiTestResponseDrawer.classList.remove('hidden');
+                if (apiTestStatus) {
+                    apiTestStatus.textContent = `STATUS: ${res.status} ${res.statusText || ''}`;
+                    apiTestStatus.className = res.ok ? 'text-green-400' : 'text-red-400';
+                }
+                if (apiTestTime) apiTestTime.textContent = `${duration} ms`;
+                if (apiTestResponseBody) apiTestResponseBody.textContent = formattedText || '(empty response)';
+                if (apiTestBadge) {
+                    apiTestBadge.textContent = res.ok ? `${res.status} OK` : `HTTP ${res.status}`;
+                    apiTestBadge.className = `px-1.5 py-0.5 ${res.ok ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'} text-[8px] uppercase`;
+                }
+                directSuccess = true;
+            } catch (err) {
+                console.warn('Direct fetch failed, falling back to server-side CORS proxy...', err);
             }
-            if (apiTestTime) apiTestTime.textContent = `${duration} ms`;
-            if (apiTestResponseBody) apiTestResponseBody.textContent = formattedText || '(empty response)';
+        }
 
+        if (!directSuccess) {
+            // Route through server-side proxy to bypass CORS
             if (apiTestBadge) {
-                apiTestBadge.textContent = res.ok ? `${res.status} OK` : `HTTP ${res.status}`;
-                apiTestBadge.className = `px-1.5 py-0.5 ${res.ok ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'} text-[8px] uppercase`;
+                apiTestBadge.textContent = 'PROXIED...';
+                apiTestBadge.className = 'px-1.5 py-0.5 bg-electric-blue/20 text-electric-blue text-[8px] uppercase animate-pulse';
             }
-        } catch (err) {
-            const duration = Math.round(performance.now() - tStart);
-            if (apiTestResponseDrawer) apiTestResponseDrawer.classList.remove('hidden');
-            if (apiTestStatus) {
-                apiTestStatus.textContent = 'ERROR: NETWORK / CORS BLOCKED';
-                apiTestStatus.className = 'text-red-400';
+            try {
+                const proxyPayload = {
+                    url: url,
+                    method: method,
+                    headers: {},
+                    body: (['POST', 'PUT', 'PATCH'].includes(method) && apiTestBody) ? apiTestBody.value.trim() : null
+                };
+
+                const proxyRes = await fetch(`${API_URL}/sessions/proxy-test`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(proxyPayload)
+                });
+
+                const duration = Math.round(performance.now() - tStart);
+                const data = await proxyRes.json();
+
+                if (apiTestResponseDrawer) apiTestResponseDrawer.classList.remove('hidden');
+                if (routeInfo) {
+                    routeInfo.textContent = '⚡ CORS PROXY ACTIVE';
+                    routeInfo.className = 'text-[8px] font-mono text-electric-blue border border-electric-blue/30 px-1 py-0.2 bg-electric-blue/10';
+                    routeInfo.classList.remove('hidden');
+                }
+
+                if (data.ok) {
+                    if (apiTestStatus) {
+                        apiTestStatus.textContent = `STATUS: ${data.status} ${data.status_text || 'OK'}`;
+                        apiTestStatus.className = 'text-green-400';
+                    }
+                    if (apiTestTime) apiTestTime.textContent = `${data.duration_ms || duration} ms`;
+                    if (apiTestResponseBody) apiTestResponseBody.textContent = data.body || '(empty response)';
+                    if (apiTestBadge) {
+                        apiTestBadge.textContent = `${data.status} OK (PROXIED)`;
+                        apiTestBadge.className = 'px-1.5 py-0.5 bg-green-500/20 text-green-400 text-[8px] uppercase';
+                    }
+                } else {
+                    // Graceful failure diagnosis
+                    if (apiTestStatus) {
+                        apiTestStatus.textContent = `STATUS: ${data.status || 502} ${data.status_text || 'ERROR'}`;
+                        apiTestStatus.className = 'text-red-400';
+                    }
+                    if (apiTestTime) apiTestTime.textContent = `${data.duration_ms || duration} ms`;
+                    if (apiTestResponseBody) {
+                        let diag = `// ── PROXY EXECUTION DIAGNOSTIC ──\n`;
+                        diag += `Target URL : ${data.target_url || url}\n`;
+                        diag += `Status     : ${data.status || 502} (${data.status_text || 'FAILED'})\n`;
+                        diag += `Issue      : ${data.error_type || 'REQUEST_FAILED'}\n`;
+                        diag += `Detail     : ${data.message || 'Remote host did not return a valid response.'}\n\n`;
+                        if (data.body) {
+                            diag += `Server Response:\n${data.body}`;
+                        } else {
+                            diag += `Recommendation: Check that the domain is public, online, and accepts incoming ${method} requests.`;
+                        }
+                        apiTestResponseBody.textContent = diag;
+                    }
+                    if (apiTestBadge) {
+                        apiTestBadge.textContent = `${data.status || 502} ${data.status_text || 'ERROR'}`;
+                        apiTestBadge.className = 'px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[8px] uppercase';
+                    }
+                }
+            } catch (proxyErr) {
+                const duration = Math.round(performance.now() - tStart);
+                if (apiTestResponseDrawer) apiTestResponseDrawer.classList.remove('hidden');
+                if (apiTestStatus) {
+                    apiTestStatus.textContent = 'GATEWAY UNREACHABLE';
+                    apiTestStatus.className = 'text-red-400';
+                }
+                if (apiTestTime) apiTestTime.textContent = `${duration} ms`;
+                if (apiTestResponseBody) {
+                    apiTestResponseBody.textContent = `// VĀK BACKEND PROXY ERROR\nCould not reach the Vāk backend proxy to relay this request.\nDetail: ${proxyErr.message}\nEnsure the backend server is running and accessible.`;
+                }
+                if (apiTestBadge) {
+                    apiTestBadge.textContent = 'GATEWAY ERR';
+                    apiTestBadge.className = 'px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[8px] uppercase';
+                }
             }
-            if (apiTestTime) apiTestTime.textContent = `${duration} ms`;
-            if (apiTestResponseBody) {
-                apiTestResponseBody.textContent = `Failed to fetch: ${err.message}\nNote: If accessing a remote server, ensure CORS headers (Access-Control-Allow-Origin) are enabled.`;
-            }
-            if (apiTestBadge) {
-                apiTestBadge.textContent = 'FAILED';
-                apiTestBadge.className = 'px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[8px] uppercase';
-            }
+        }
+    });
+}
+
+// Copy button for API response
+const apiTestCopyBtn = document.getElementById('api-test-copy-btn');
+if (apiTestCopyBtn) {
+    apiTestCopyBtn.addEventListener('click', () => {
+        if (apiTestResponseBody) {
+            navigator.clipboard.writeText(apiTestResponseBody.textContent).then(() => {
+                const original = apiTestCopyBtn.textContent;
+                apiTestCopyBtn.textContent = 'COPIED!';
+                setTimeout(() => apiTestCopyBtn.textContent = original, 1500);
+            });
         }
     });
 }
